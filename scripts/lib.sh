@@ -110,9 +110,12 @@ lab_dir() {
   local match
   match="$(find "${LABS_DIR}" -maxdepth 1 -type d -name "${id}-*" 2>/dev/null | head -1)"
   if [ -z "${match}" ]; then
-    # zero-pad single digits
-    local padded
-    padded="$(printf '%02d' "$((10#${id}))" 2>/dev/null || echo "${id}")"
+    # Zero-pad only if the id is purely numeric (e.g. 5 -> 05). Leave ids like
+    # "t01" or stray arguments untouched to avoid arithmetic errors.
+    local padded="${id}"
+    if [[ "${id}" =~ ^[0-9]+$ ]]; then
+      padded="$(printf '%02d' "${id#0}")"
+    fi
     match="$(find "${LABS_DIR}" -maxdepth 1 -type d -name "${padded}-*" 2>/dev/null | head -1)"
   fi
   echo "${match}"
@@ -135,10 +138,11 @@ PROGRESS_FILE="${REPO_ROOT}/PROGRESS.md"
 # Normalise a lab id for matching the table row (e.g. 5 -> 05, keep t01).
 _progress_key() {
   local id="$1"
-  case "${id}" in
-    t*) echo "${id}" ;;
-    *)  printf '%02d' "$((10#${id}))" 2>/dev/null || echo "${id}" ;;
-  esac
+  if [[ "${id}" =~ ^[0-9]+$ ]]; then
+    printf '%02d' "${id#0}"
+  else
+    echo "${id}"
+  fi
 }
 
 # Update the row for a lab. Args: <id> <new_status> <bump_attempts:true|false>
