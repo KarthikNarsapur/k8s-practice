@@ -59,4 +59,6 @@ module "compute" {
   auto_init_cluster  = var.auto_init_cluster
   ssm_param_prefix   = var.project_name
   region             = var.region
+
+  nat_dependency = module.network.nat_route_ids
 }

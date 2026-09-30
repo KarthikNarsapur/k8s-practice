@@ -4,8 +4,8 @@
 # Runs common prep, waits for the control-plane to publish its readiness
 # marker + join command to SSM Parameter Store, then joins the cluster.
 #
-# Injected vars: ${common_bootstrap} ${auto_init_cluster}
-#                ${ssm_param_prefix} ${region}
+# Injected by Terraform templatefile(): common_bootstrap, auto_init_cluster,
+# ssm_param_prefix, region.
 ###############################################################################
 set -euo pipefail
 exec > >(tee -a /var/log/k8s-bootstrap.log) 2>&1

@@ -62,3 +62,9 @@ variable "ssm_param_prefix" {
 variable "region" {
   type = string
 }
+
+variable "nat_dependency" {
+  description = "IDs of NAT routes; used only to order instance creation after egress is ready."
+  type        = list(string)
+  default     = []
+}

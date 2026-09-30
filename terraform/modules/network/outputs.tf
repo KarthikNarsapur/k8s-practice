@@ -17,3 +17,9 @@ output "control_plane_sg_id" {
 output "worker_sg_id" {
   value = aws_security_group.worker.id
 }
+
+# IDs of the private NAT routes. Compute depends on these so nodes do not boot
+# (and run apt-get) before internet egress is actually wired.
+output "nat_route_ids" {
+  value = aws_route.private_nat[*].id
+}

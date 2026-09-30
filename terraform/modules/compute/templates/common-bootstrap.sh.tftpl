@@ -2,7 +2,7 @@
 ###############################################################################
 # common-bootstrap.sh
 # Prepares an Ubuntu 24.04 node to run Kubernetes with containerd.
-# Rendered by Terraform. Variables injected: ${kubernetes_version}
+# Rendered by Terraform templatefile(). Injected: kubernetes_version.
 #
 # This script is intentionally verbose and writes a log so you can inspect
 # exactly what happened underneath Kubernetes:  /var/log/k8s-bootstrap.log
@@ -12,6 +12,34 @@ exec > >(tee -a /var/log/k8s-bootstrap.log) 2>&1
 echo "[common] starting $(date -u)"
 
 export DEBIAN_FRONTEND=noninteractive
+
+# --- 0. Wait for internet egress (NAT gateway may not be ready at boot) ---
+# The private-subnet nodes reach the internet through the NAT gateway. If the
+# instance boots before the NAT/route is fully live, early apt-get calls fail.
+# Gate the whole bootstrap on egress being reachable, and prefer IPv4 (the VPC
+# has no IPv6 egress).
+echo 'Acquire::ForceIPv4 "true";' >/etc/apt/apt.conf.d/99force-ipv4
+cat <<'EOF' >/etc/apt/apt.conf.d/99retries
+Acquire::Retries "5";
+Acquire::http::Timeout "20";
+EOF
+
+echo "[common] waiting for internet egress via NAT..."
+egress_ok=false
+for i in $(seq 1 60); do
+  if curl -4 -fsS -o /dev/null --max-time 10 https://pkgs.k8s.io/ 2>/dev/null \
+     || curl -4 -fsS -o /dev/null --max-time 10 http://us-east-1.ec2.archive.ubuntu.com/ubuntu/ 2>/dev/null; then
+    egress_ok=true
+    echo "[common] egress is up (attempt $i)"
+    break
+  fi
+  echo "[common] no egress yet ($i/60); sleeping 10s"
+  sleep 10
+done
+if [ "$${egress_ok}" != "true" ]; then
+  echo "[common] ERROR: no internet egress after ~10 min; aborting bootstrap." >&2
+  exit 1
+fi
 
 # --- 1. Disable swap (kubelet requires it off) ---
 echo "[common] disabling swap"
@@ -39,7 +67,19 @@ sysctl --system
 # --- 4. Base packages ---
 echo "[common] apt update + base packages"
 apt-get update -y
-apt-get install -y apt-transport-https ca-certificates curl gnupg jq
+apt-get install -y apt-transport-https ca-certificates curl gnupg jq unzip
+
+# --- 4b. AWS CLI v2 (required: nodes read the kubeadm join token from SSM) ---
+# Ubuntu images do not reliably ship the AWS CLI, so install it explicitly.
+if ! command -v aws >/dev/null 2>&1; then
+  echo "[common] installing AWS CLI v2"
+  tmpdir="$(mktemp -d)"
+  curl -4 -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "$${tmpdir}/awscliv2.zip"
+  unzip -q "$${tmpdir}/awscliv2.zip" -d "$${tmpdir}"
+  "$${tmpdir}/aws/install" --update
+  rm -rf "$${tmpdir}"
+fi
+aws --version || { echo "[common] ERROR: aws CLI missing after install" >&2; exit 1; }
 
 # --- 5. containerd runtime (from Ubuntu repo) ---
 echo "[common] installing containerd"

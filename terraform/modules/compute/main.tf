@@ -37,6 +37,8 @@ resource "aws_instance" "control_plane" {
   vpc_security_group_ids = [var.control_plane_sg_id]
   iam_instance_profile   = var.instance_profile_name
   user_data              = local.control_plane_user_data
+  # Re-create the node if its bootstrap (user_data) changes.
+  user_data_replace_on_change = true
 
   # No public IP: reached via SSM only.
   associate_public_ip_address = false
@@ -56,6 +58,9 @@ resource "aws_instance" "control_plane" {
     Name = "${var.project_name}-control-plane"
     Role = "control-plane"
   }
+
+  # Do not boot (and run apt-get) until the NAT egress route exists.
+  depends_on = [var.nat_dependency]
 }
 
 ###############################################################################
@@ -69,6 +74,8 @@ resource "aws_instance" "worker" {
   vpc_security_group_ids = [var.worker_sg_id]
   iam_instance_profile   = var.instance_profile_name
   user_data              = local.worker_user_data
+  # Re-create the node if its bootstrap (user_data) changes.
+  user_data_replace_on_change = true
 
   associate_public_ip_address = false
 
@@ -90,5 +97,6 @@ resource "aws_instance" "worker" {
 
   # Workers depend on the control-plane publishing its join command to SSM,
   # but they poll for it, so we only need the CP resource to exist first.
-  depends_on = [aws_instance.control_plane]
+  # Also wait for NAT egress so early apt-get calls succeed.
+  depends_on = [aws_instance.control_plane, var.nat_dependency]
 }

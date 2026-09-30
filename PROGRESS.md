@@ -8,7 +8,7 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 
 | Lab | Topic | Status | Attempts | Completed |
 |-----|-------|--------|----------|-----------|
-| 01 | Cluster architecture | Not Started | 0 | |
+| 01 | Cluster architecture | Completed | 1 | 2026-09-30 |
 | 02 | kubectl basics | Not Started | 0 | |
 | 03 | Pods | Not Started | 0 | |
 | 04 | Pod lifecycle | Not Started | 0 | |
