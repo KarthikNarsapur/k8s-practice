@@ -1,0 +1,11 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/crash.log
+terraform/terraform.tfvars
+*.tfplan
+# Note: terraform/backend.tf is committed on purpose (bucket name, no secrets).
+
+# Local
+*.log

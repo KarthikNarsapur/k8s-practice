@@ -1,0 +1,12 @@
+# Optional: use S3 remote state. Local state is the default.
+# Rename this file to backend.tf and fill in your bucket to enable.
+#
+# terraform {
+#   backend "s3" {
+#     bucket       = "your-tf-state-bucket"
+#     key          = "k8s-lab/terraform.tfstate"
+#     region       = "us-east-1"
+#     encrypt      = true
+#     use_lockfile = true
+#   }
+# }

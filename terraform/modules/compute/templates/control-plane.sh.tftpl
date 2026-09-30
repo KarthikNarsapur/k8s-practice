@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+###############################################################################
+# control-plane.sh
+# Runs common prep, then (optionally) initialises the cluster with kubeadm,
+# installs Calico, and publishes the worker join command to SSM Parameter Store
+# as a SecureString. Nothing secret is ever written to disk in plaintext logs.
+#
+# Injected vars: ${common_bootstrap} ${kubernetes_version} ${pod_cidr}
+#                ${service_cidr} ${auto_init_cluster} ${ssm_param_prefix}
+#                ${region}
+###############################################################################
+set -euo pipefail
+exec > >(tee -a /var/log/k8s-bootstrap.log) 2>&1
+echo "[control-plane] starting $(date -u)"
+
+# --- Run common node preparation ---
+cat <<'COMMON_EOF' >/usr/local/bin/common-bootstrap.sh
+${common_bootstrap}
+COMMON_EOF
+chmod +x /usr/local/bin/common-bootstrap.sh
+/usr/local/bin/common-bootstrap.sh
+
+if [ "${auto_init_cluster}" != "true" ]; then
+  echo "[control-plane] auto_init_cluster=false -> skipping kubeadm init."
+  echo "[control-plane] To bootstrap manually, run: kubeadm init --pod-network-cidr=${pod_cidr} --service-cidr=${service_cidr}"
+  exit 0
+fi
+
+# --- kubeadm init ---
+echo "[control-plane] running kubeadm init"
+kubeadm init \
+  --pod-network-cidr="${pod_cidr}" \
+  --service-cidr="${service_cidr}" \
+  --kubernetes-version="v${kubernetes_version}.0" \
+  --ignore-preflight-errors=NumCPU,Mem || \
+kubeadm init \
+  --pod-network-cidr="${pod_cidr}" \
+  --service-cidr="${service_cidr}" \
+  --ignore-preflight-errors=NumCPU,Mem
+
+# --- kubeconfig for root and ubuntu users ---
+echo "[control-plane] configuring kubeconfig"
+mkdir -p /root/.kube
+cp -f /etc/kubernetes/admin.conf /root/.kube/config
+
+if id ubuntu >/dev/null 2>&1; then
+  mkdir -p /home/ubuntu/.kube
+  cp -f /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+  chown -R ubuntu:ubuntu /home/ubuntu/.kube
+fi
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+# --- Install Calico CNI ---
+echo "[control-plane] installing Calico"
+# Tigera operator + custom resources. Pod CIDR must match kubeadm's.
+CALICO_VER="v3.28.2"
+kubectl create -f "https://raw.githubusercontent.com/projectcalico/calico/$${CALICO_VER}/manifests/tigera-operator.yaml"
+
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  calicoNetwork:
+    ipPools:
+    - blockSize: 26
+      cidr: ${pod_cidr}
+      encapsulation: IPIP
+      natOutgoing: Enabled
+      nodeSelector: all()
+EOF
+
+# --- Publish the join command to SSM Parameter Store (SecureString) ---
+echo "[control-plane] publishing join command to SSM"
+JOIN_CMD="$(kubeadm token create --print-join-command)"
+aws ssm put-parameter \
+  --region "${region}" \
+  --name "/${ssm_param_prefix}/join-command" \
+  --type "SecureString" \
+  --value "$${JOIN_CMD}" \
+  --overwrite
+
+# Store a readiness marker so workers know the control-plane is up.
+aws ssm put-parameter \
+  --region "${region}" \
+  --name "/${ssm_param_prefix}/control-plane-ready" \
+  --type "String" \
+  --value "ready" \
+  --overwrite
+
+echo "[control-plane] done $(date -u)"

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+###############################################################################
+# worker.sh
+# Runs common prep, waits for the control-plane to publish its readiness
+# marker + join command to SSM Parameter Store, then joins the cluster.
+#
+# Injected vars: ${common_bootstrap} ${auto_init_cluster}
+#                ${ssm_param_prefix} ${region}
+###############################################################################
+set -euo pipefail
+exec > >(tee -a /var/log/k8s-bootstrap.log) 2>&1
+echo "[worker] starting $(date -u)"
+
+# --- Run common node preparation ---
+cat <<'COMMON_EOF' >/usr/local/bin/common-bootstrap.sh
+${common_bootstrap}
+COMMON_EOF
+chmod +x /usr/local/bin/common-bootstrap.sh
+/usr/local/bin/common-bootstrap.sh
+
+if [ "${auto_init_cluster}" != "true" ]; then
+  echo "[worker] auto_init_cluster=false -> skipping join. Fetch join cmd from SSM manually."
+  exit 0
+fi
+
+# --- Wait for control-plane readiness marker (up to ~15 min) ---
+echo "[worker] waiting for control-plane readiness"
+for i in $(seq 1 90); do
+  if aws ssm get-parameter --region "${region}" \
+      --name "/${ssm_param_prefix}/control-plane-ready" \
+      --query 'Parameter.Value' --output text 2>/dev/null | grep -q ready; then
+    echo "[worker] control-plane is ready"
+    break
+  fi
+  echo "[worker] not ready yet ($i) ; sleeping 10s"
+  sleep 10
+done
+
+# --- Fetch the join command (SecureString, decrypted) and join ---
+echo "[worker] fetching join command from SSM"
+JOIN_CMD="$(aws ssm get-parameter --region "${region}" \
+  --name "/${ssm_param_prefix}/join-command" \
+  --with-decryption --query 'Parameter.Value' --output text)"
+
+if [ -z "$${JOIN_CMD}" ] || [ "$${JOIN_CMD}" = "None" ]; then
+  echo "[worker] ERROR: no join command found in SSM" >&2
+  exit 1
+fi
+
+echo "[worker] joining cluster"
+eval "$${JOIN_CMD} --ignore-preflight-errors=NumCPU,Mem"
+
+echo "[worker] done $(date -u)"

@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+###############################################################################
+# common-bootstrap.sh
+# Prepares an Ubuntu 24.04 node to run Kubernetes with containerd.
+# Rendered by Terraform. Variables injected: ${kubernetes_version}
+#
+# This script is intentionally verbose and writes a log so you can inspect
+# exactly what happened underneath Kubernetes:  /var/log/k8s-bootstrap.log
+###############################################################################
+set -euo pipefail
+exec > >(tee -a /var/log/k8s-bootstrap.log) 2>&1
+echo "[common] starting $(date -u)"
+
+export DEBIAN_FRONTEND=noninteractive
+
+# --- 1. Disable swap (kubelet requires it off) ---
+echo "[common] disabling swap"
+swapoff -a || true
+sed -i '/\bswap\b/s/^/#/' /etc/fstab || true
+
+# --- 2. Kernel modules for container networking ---
+echo "[common] loading kernel modules"
+cat <<'EOF' >/etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+modprobe overlay
+modprobe br_netfilter
+
+# --- 3. sysctl for Kubernetes networking ---
+echo "[common] sysctl"
+cat <<'EOF' >/etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+sysctl --system
+
+# --- 4. Base packages ---
+echo "[common] apt update + base packages"
+apt-get update -y
+apt-get install -y apt-transport-https ca-certificates curl gnupg jq
+
+# --- 5. containerd runtime (from Ubuntu repo) ---
+echo "[common] installing containerd"
+apt-get install -y containerd
+mkdir -p /etc/containerd
+containerd config default >/etc/containerd/config.toml
+# Use the systemd cgroup driver to match kubelet.
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+systemctl restart containerd
+systemctl enable containerd
+
+# --- 6. Kubernetes apt repo (pkgs.k8s.io) pinned to the chosen minor version ---
+echo "[common] adding kubernetes repo v${kubernetes_version}"
+mkdir -p /etc/apt/keyrings
+curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${kubernetes_version}/deb/Release.key" |
+  gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${kubernetes_version}/deb/ /" \
+  >/etc/apt/sources.list.d/kubernetes.list
+
+# --- 7. Install kubelet, kubeadm, kubectl and hold them ---
+echo "[common] installing kubelet kubeadm kubectl"
+apt-get update -y
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
+systemctl enable kubelet
+
+# --- 8. crictl points at containerd (so 'crictl ps' works in labs) ---
+cat <<'EOF' >/etc/crictl.yaml
+runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 10
+EOF
+
+echo "[common] done $(date -u)"

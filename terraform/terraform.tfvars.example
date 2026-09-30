@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and adjust. All values are optional (defaults shown).
+
+# region                      = "us-east-1"
+# project_name                = "k8s-lab"
+
+# --- Cost control knobs ---
+# worker_count                = 3        # drop to 2 to save money
+# control_plane_instance_type = "t3.medium"
+# worker_instance_type        = "t3.medium"  # try t3.small for light labs
+# enable_nat_gateway          = true     # false + VPC endpoints later to cut ~$33/mo
+# single_nat_gateway          = true
+
+# --- Cluster ---
+# kubernetes_version = "1.33"
+# auto_init_cluster  = true              # false = bootstrap kubeadm by hand (more instructive)
