@@ -49,4 +49,83 @@ fi
 ok "PASS: daemonset/node-agent runs on all ${schedulable} schedulable node(s)"
 
 ok "PASS: DaemonSet 'node-agent' is one-pod-per-node and fully ready"
+
+###############################################################################
+# Hard Challenge checks
+###############################################################################
+
+# HC1 — ssd-agent: runs only on nodes labeled disk=ssd.
+if ! kc "get daemonset ssd-agent -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: [HC1] DaemonSet 'ssd-agent' not found"
+  err "Object: daemonset/ssd-agent in namespace ${NS}"
+  err "Hint: A DaemonSet with a nodeSelector only lands on nodes carrying that label. Confirm the setup created it, or re-run lab-start."
+  return 1
+fi
+ssd_desired="$(kc "get daemonset ssd-agent -n ${NS} -o jsonpath={.status.desiredNumberScheduled}" 2>/dev/null | tr -d '[:space:]')"
+ssd_ready="$(kc "get daemonset ssd-agent -n ${NS} -o jsonpath={.status.numberReady}" 2>/dev/null | tr -d '[:space:]')"
+ssd_desired="${ssd_desired:-0}"
+ssd_ready="${ssd_ready:-0}"
+if [ "${ssd_ready}" != "${ssd_desired}" ] || [ "${ssd_desired}" = "0" ]; then
+  err "FAILED: [HC1] DaemonSet 'ssd-agent' pods are not all ready"
+  err "Object: daemonset/ssd-agent (desiredNumberScheduled=${ssd_desired}, numberReady=${ssd_ready})"
+  err "Hint: Every scheduled daemon pod must reach Ready. Inspect the pods and node labels the selector targets."
+  return 1
+fi
+ssd_labeled="$(kc "get nodes -l disk=ssd --no-headers" 2>/dev/null | grep -c . || true)"
+ssd_labeled="${ssd_labeled:-0}"
+if [ "${ssd_desired}" != "${ssd_labeled}" ]; then
+  err "FAILED: [HC1] 'ssd-agent' is not scheduled on exactly the disk=ssd nodes"
+  err "Object: daemonset/ssd-agent (desiredNumberScheduled=${ssd_desired}, nodes labeled disk=ssd=${ssd_labeled})"
+  err "Hint: A nodeSelector restricts a DaemonSet to the matching nodes only — compare its desired count to how many nodes carry that label."
+  return 1
+fi
+ok "PASS: [HC1] ssd-agent runs on exactly the ${ssd_labeled} node(s) labeled disk=ssd"
+
+# HC2 — taint-agent: tolerates the control-plane taint, so it runs on ALL nodes.
+if ! kc "get daemonset taint-agent -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: [HC2] DaemonSet 'taint-agent' not found"
+  err "Object: daemonset/taint-agent in namespace ${NS}"
+  err "Hint: A DaemonSet that tolerates a node's taint can be placed there. Confirm the setup created it, or re-run lab-start."
+  return 1
+fi
+taint_desired="$(kc "get daemonset taint-agent -n ${NS} -o jsonpath={.status.desiredNumberScheduled}" 2>/dev/null | tr -d '[:space:]')"
+taint_ready="$(kc "get daemonset taint-agent -n ${NS} -o jsonpath={.status.numberReady}" 2>/dev/null | tr -d '[:space:]')"
+taint_desired="${taint_desired:-0}"
+taint_ready="${taint_ready:-0}"
+if [ "${taint_ready}" != "${taint_desired}" ] || [ "${taint_desired}" = "0" ]; then
+  err "FAILED: [HC2] DaemonSet 'taint-agent' pods are not all ready"
+  err "Object: daemonset/taint-agent (desiredNumberScheduled=${taint_desired}, numberReady=${taint_ready})"
+  err "Hint: Every scheduled daemon pod must reach Ready. Inspect the pods and events."
+  return 1
+fi
+total_nodes="$(kc "get nodes --no-headers" 2>/dev/null | grep -c . || true)"
+total_nodes="${total_nodes:-0}"
+if [ "${taint_desired}" != "${total_nodes}" ]; then
+  err "FAILED: [HC2] 'taint-agent' is not running on every node"
+  err "Object: daemonset/taint-agent (desiredNumberScheduled=${taint_desired}, total nodes=${total_nodes})"
+  err "Hint: A tolerationless DaemonSet skips tainted nodes; one that tolerates the control-plane taint should cover every node. Check its tolerations."
+  return 1
+fi
+ok "PASS: [HC2] taint-agent tolerates the control-plane taint and runs on all ${total_nodes} node(s)"
+
+# HC3 — zone-agent: after one worker lost zone=east, desired should match ready.
+if ! kc "get daemonset zone-agent -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: [HC3] DaemonSet 'zone-agent' not found"
+  err "Object: daemonset/zone-agent in namespace ${NS}"
+  err "Hint: A DaemonSet tracks the set of nodes matching its selector as labels change. Confirm the setup created it, or re-run lab-start."
+  return 1
+fi
+zone_desired="$(kc "get daemonset zone-agent -n ${NS} -o jsonpath={.status.desiredNumberScheduled}" 2>/dev/null | tr -d '[:space:]')"
+zone_ready="$(kc "get daemonset zone-agent -n ${NS} -o jsonpath={.status.numberReady}" 2>/dev/null | tr -d '[:space:]')"
+zone_desired="${zone_desired:-0}"
+zone_ready="${zone_ready:-0}"
+if [ "${zone_ready}" != "${zone_desired}" ] || [ "${zone_desired}" = "0" ]; then
+  err "FAILED: [HC3] DaemonSet 'zone-agent' pods are not all ready"
+  err "Object: daemonset/zone-agent (desiredNumberScheduled=${zone_desired}, numberReady=${zone_ready})"
+  err "Hint: When a node loses the selector label, its daemon pod is removed and 'desired' drops. desired and ready should still match on the remaining nodes."
+  return 1
+fi
+ok "PASS: [HC3] zone-agent desiredNumberScheduled == numberReady (${zone_ready}) after the label change"
+
+ok "PASS: Lab 11 base + hard challenges complete"
 return 0

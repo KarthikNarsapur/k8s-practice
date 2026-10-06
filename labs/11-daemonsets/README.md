@@ -48,12 +48,46 @@ Work in the `lab-11` namespace.
 Note: there is no `kubectl create daemonset` generator — you must apply a
 manifest.
 
+### Hard Challenges
+
+These build on the base lab. `./scripts/lab-start.sh 11` pre-deploys the
+resources below (plus a couple of node-label changes). Investigate them in the
+`lab-11` namespace with `kubectl -n lab-11 get ds -o wide`.
+
+**HC1 — DaemonSet Scheduling Investigation.** Setup labels exactly one worker
+node with `disk=ssd` and deploys a DaemonSet `ssd-agent` whose pod template has
+`nodeSelector: {disk: ssd}`.
+- Explain why `ssd-agent` runs on some nodes but not others.
+- Read its `DESIRED / CURRENT / READY / AVAILABLE` columns and relate the
+  desired count to how many nodes carry `disk=ssd`.
+
+**HC2 — Taints and Tolerations.** Setup deploys a DaemonSet `taint-agent` that
+*includes* a toleration for the control-plane `NoSchedule` taint, so it runs on
+**every** node — workers *and* the control-plane.
+- Compare `taint-agent`'s desired count to the total node count.
+- Explain how its toleration lets it land on the tainted control-plane node,
+  unlike your original tolerationless `node-agent`.
+
+**HC3 — Node Label Change.** Setup labels **all** workers with `zone=east`,
+deploys a DaemonSet `zone-agent` with `nodeSelector: {zone: east}`, then
+**removes** `zone=east` from one worker.
+- Observe that the daemon pod on that node was removed and `DESIRED` dropped by
+  one.
+- Explain why: a DaemonSet continuously reconciles its pod set against the nodes
+  that currently match its selector.
+
 ## 5. Expected Outcome
 
 - DaemonSet `node-agent` exists in `lab-11`.
 - `DESIRED == READY` and both equal the number of schedulable nodes.
 - You can explain why the control-plane node is (or is not) included, based on
   its taint and whether your DaemonSet tolerates it.
+- **HC1:** `ssd-agent` has `DESIRED == READY`, and that count equals the number
+  of nodes labeled `disk=ssd`.
+- **HC2:** `taint-agent` has `DESIRED == READY`, and that count equals the
+  **total** node count (control-plane included).
+- **HC3:** `zone-agent` has `DESIRED == READY`; after one worker lost
+  `zone=east`, its desired count reflects the remaining matching nodes.
 
 ## 6. Verification Criteria
 
@@ -66,6 +100,11 @@ Passes when:
   `status.desiredNumberScheduled == status.numberReady`.
 - `desiredNumberScheduled` equals the number of schedulable nodes (nodes without
   a `NoSchedule`/`NoExecute` taint), computed from `kubectl get nodes`.
+- **HC1:** DaemonSet `ssd-agent` has `desiredNumberScheduled == numberReady`,
+  and desired equals the count of nodes labeled `disk=ssd`.
+- **HC2:** DaemonSet `taint-agent` has `desiredNumberScheduled == numberReady`,
+  and desired equals the total node count (it tolerates control-plane taints).
+- **HC3:** DaemonSet `zone-agent` has `desiredNumberScheduled == numberReady`.
 
 ## 7. Optional Hints
 
@@ -76,6 +115,14 @@ Passes when:
 - The control-plane node normally carries
   `node-role.kubernetes.io/control-plane:NoSchedule`, so a DaemonSet with no
   matching toleration will not run there — and the verifier expects the same.
+- **HC1:** A `nodeSelector` constrains the DaemonSet to the intersection of
+  "all schedulable nodes" and "nodes carrying that label". If only one node
+  carries `disk=ssd`, only one pod is desired.
+- **HC2:** A toleration is what lets a pod ignore a matching taint. Without it,
+  the scheduler rejects the node; with it, the node becomes eligible.
+- **HC3:** Node labels are not immutable — removing a label that a DaemonSet's
+  `nodeSelector` depends on causes the controller to delete the pod from that
+  node. It is a runtime change; the DaemonSet is not re-created.
 
 ## 8. Troubleshooting
 

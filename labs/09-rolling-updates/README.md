@@ -26,6 +26,12 @@ This deploys a Deployment named `rollme` (image `nginx:1.24`, `replicas: 4`)
 with an explicit `RollingUpdate` strategy (`maxSurge: 1`, `maxUnavailable: 1`)
 into namespace `lab-09`.
 
+The setup also deploys three additional resources for the hard challenges:
+- `rollme-fail` — nginx:1.25 (healthy), then rolled to a bad image (stuck).
+- `surge-test` — nginx:1.24 with 6 replicas, maxSurge=2, maxUnavailable=0.
+- `avail-check` — deployed with a nonexistent tag (all pods
+  `ImagePullBackOff`).
+
 ## 4. Challenge
 
 Work entirely within namespace `lab-09`.
@@ -53,6 +59,41 @@ Work entirely within namespace `lab-09`.
    kubectl rollout history deploy/rollme -n lab-09
    ```
 
+### Hard Challenges
+
+**HC1 — Failed Rolling Update**
+
+The Deployment `rollme-fail` started healthy at nginx:1.25 with 3 replicas, then
+was rolled to image `nginx:doesnotexist-99.99`. The rollout is stuck — new pods
+cannot pull the image. Your task:
+
+1. Investigate the stuck rollout: check pods, events, and the ReplicaSets.
+2. Identify which pods belong to the failed new RS and which are still healthy
+   from the old RS.
+3. Recover the Deployment to a healthy, pullable nginx image so all replicas
+   become available.
+
+**HC2 — maxSurge/maxUnavailable**
+
+The Deployment `surge-test` runs nginx:1.24 with 6 replicas and uses a strategy
+of `maxSurge: 2`, `maxUnavailable: 0`. Your task:
+
+1. Roll the Deployment forward to `nginx:1.25`.
+2. Observe the rollout — with `maxUnavailable=0`, the controller creates surge
+   pods **before** removing any old ones, so available pods never drop below 6.
+3. After completion, confirm all 6 replicas are updated and available.
+
+**HC3 — Rollout Availability Investigation**
+
+The Deployment `avail-check` was deployed with image `nginx:1.25-nonexistent`
+(a tag that does not exist). All 3 pods are stuck in `ImagePullBackOff`. Your
+task:
+
+1. Diagnose the problem: inspect pod events and status.
+2. Determine if this is an image pull failure, a scheduling issue, or a
+   readiness probe failure.
+3. Fix the Deployment so all 3 replicas become available.
+
 ## 5. Expected Outcome
 
 - `deployment/rollme` runs `nginx:1.25` across all 4 replicas.
@@ -61,6 +102,12 @@ Work entirely within namespace `lab-09`.
   holds all 4 pods.
 - `status.observedGeneration` equals `metadata.generation` (the controller has
   fully processed the latest spec).
+- **HC1**: `rollme-fail` runs a valid nginx image (not the broken tag) with all
+  3 replicas available.
+- **HC2**: `surge-test` runs `nginx:1.25` with all 6 replicas updated and
+  available.
+- **HC3**: `avail-check` runs a valid nginx image (not `nginx:1.25-nonexistent`)
+  with all 3 replicas available.
 
 ## 6. Verification Criteria
 
@@ -73,6 +120,12 @@ Passes when:
 - `spec.template.spec.containers[0].image == nginx:1.25`.
 - `status.availableReplicas == 4` and `status.updatedReplicas == 4`.
 - `status.observedGeneration == metadata.generation`.
+- `deployment/rollme-fail` has all desired replicas available and is not running
+  the broken image tag.
+- `deployment/surge-test` image is `nginx:1.25`, `availableReplicas == 6`,
+  `updatedReplicas == 6`.
+- `deployment/avail-check` has all desired replicas available and is not running
+  the broken image tag.
 
 ## 7. Optional Hints
 
@@ -82,6 +135,12 @@ Passes when:
   returns.
 - Changing the pod template creates a new ReplicaSet with a new
   `pod-template-hash`; the old one is kept (scaled to 0) for rollback.
+- HC1: The rollout is stuck, not broken. The old healthy pods are still serving.
+  There is a `kubectl rollout` subcommand that can undo the change.
+- HC2: Watch ReplicaSet counts during the roll — new pods appear before any old
+  pods disappear.
+- HC3: `kubectl describe pod` on one of the ImagePullBackOff pods reveals the
+  exact error. Fixing the image to a real tag lets the rollout proceed.
 
 ## 8. Troubleshooting
 
@@ -93,6 +152,8 @@ Passes when:
 - Want to undo a bad roll → `kubectl rollout undo deploy/rollme -n lab-09`.
 - Rollout appears "done" but verify fails on generation → give the controller a
   moment; re-run `kubectl rollout status` until it reports success.
+- HC1: if `rollme-fail` is still stuck after undo, give the old RS a few seconds
+  to scale back up and re-verify.
 
 ## 9. Solution
 

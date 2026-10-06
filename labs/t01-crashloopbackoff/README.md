@@ -63,12 +63,50 @@ Work the problem like an operator with no prior knowledge of the app:
 You decide what the fix is — the verifier only checks that the workload ends up
 healthy and stays that way.
 
+### Hard Challenges
+
+`./scripts/lab-start.sh t01` also deploys three additional broken workloads.
+Each has **more than one** independent problem. Work them like real incidents:
+investigate first, then restore each to a healthy, stable state. The verifier
+checks all of them.
+
+**HC1 — CrashLoop + Configuration.** The `config-crash` Deployment keeps
+restarting.
+- Distinguish an *application/config* failure from a *Kubernetes scheduling*
+  failure — are the pods `Pending`, or are they being placed and then dying?
+- Use `kubectl logs`, `kubectl describe`, and events to find what the container
+  is unable to read, and why.
+- Restore it so both replicas are `Running` and stable.
+
+**HC2 — CrashLoop + Scheduling.** The `sched-crash` Deployment is unavailable.
+- Determine which problem occurs **first**. The pods will not even be placed
+  until one issue is resolved; a second issue surfaces only after that.
+- Distinguish between the four states you may see along the way: `Pending`,
+  `CrashLoopBackOff`, `Running`, `Completed`.
+- Restore it so both replicas are `Running` and stable.
+
+**HC3 — Multi-Cause Incident.**
+
+> "The application `incident-app` is unavailable. Investigate and restore the
+> desired state."
+
+That is all the information you get. The deployment and its Service have
+multiple independent faults spanning scheduling, the container/runtime, and
+labels/selectors. Investigate with `kubectl get`, `describe`, `logs`, `exec`,
+and `get events`; fix every cause; and prove the result is healthy — including
+that the Service actually selects the running pods.
+
 ## 5. Expected Outcome
 
 - `kubectl get deployment broken-app -n lab-t01` shows `READY 2/2`,
   `AVAILABLE 2`.
 - `kubectl get pods -n lab-t01` shows both pods `Running` and `1/1` ready.
 - Restart counts are low and no longer climbing.
+- **HC1:** `config-crash` has all replicas `Running` and stable.
+- **HC2:** `sched-crash` has all replicas `Running` and stable (no `Pending`,
+  no `CrashLoopBackOff`).
+- **HC3:** `incident-app` has all replicas `Running` **and** `incident-svc` has
+  at least one endpoint (its selector matches the pods).
 
 ## 6. Verification Criteria
 
@@ -81,6 +119,12 @@ Passes when:
 - Every `broken-app` pod is in the `Running` phase (no `Waiting` container
   state such as a back-off).
 - The maximum container restart count across the pods is low and stable.
+- **HC1:** Deployment `config-crash` has all replicas available and every pod
+  `Running`.
+- **HC2:** Deployment `sched-crash` has all replicas available and every pod
+  `Running`.
+- **HC3:** Deployment `incident-app` has all replicas available and `Running`,
+  and Service `incident-svc` has at least one endpoint.
 
 ## 7. Optional Hints
 
@@ -92,6 +136,16 @@ Passes when:
   which is often the only place the evidence survives.
 - Compare the container's declared `command`/`args` against what a
   long-running workload needs in order to keep its main process alive.
+- **HC1:** A pod that is `Pending` has not been placed; a pod that is
+  `CrashLoopBackOff` was placed and keeps dying. The two call for completely
+  different fixes. For a config problem, compare where the volume is *mounted*
+  with the path the command actually *reads*.
+- **HC2:** Read the pod's scheduling events before worrying about the container.
+  A `nodeSelector` that matches no node leaves pods `Pending`. Only once a pod
+  is placed can you see whether the container itself also has a problem.
+- **HC3:** Treat it as a real incident with an unknown number of causes. Walk
+  the layers in order — can the pod be scheduled? does the container stay up?
+  does anything select it? — and do not stop at the first fault you fix.
 
 ## 8. Troubleshooting
 
