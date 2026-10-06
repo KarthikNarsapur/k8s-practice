@@ -56,4 +56,90 @@ fi
 
 ok "PASS: broken-app has ${available}/${desired} replicas available and ready"
 ok "PASS: all broken-app pods are Running with stable restart counts (max=${max_restarts})"
+
+###############################################################################
+# Hard Challenge checks
+###############################################################################
+
+# Shared helper for hard-challenge troubleshooting failures — single generic
+# hint per deployment, never the fix.
+fail_hc() {
+  local name="$1" tag="$2"
+  err "FAILED: [${tag}] ${name} is not healthy"
+  err "Object: deployment/${name} in namespace ${NS}"
+  err "Hint: Inspect pods, events, logs, and the pod spec. There may be more than one problem to fix."
+  return 1
+}
+
+# HC1 — config-crash: must be Running and stable.
+if ! kc "get deployment config-crash -n ${NS}" >/dev/null 2>&1; then
+  fail_hc config-crash HC1
+  return 1
+fi
+cc_desired="$(kc "get deployment config-crash -n ${NS} -o jsonpath={.spec.replicas}" 2>/dev/null | tr -d '[:space:]')"
+cc_avail="$(kc "get deployment config-crash -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+cc_ready="$(kc "get deployment config-crash -n ${NS} -o jsonpath={.status.readyReplicas}" 2>/dev/null | tr -d '[:space:]')"
+cc_desired="${cc_desired:-0}"; cc_avail="${cc_avail:-0}"; cc_ready="${cc_ready:-0}"
+if [ "${cc_avail}" != "${cc_desired}" ] || [ "${cc_ready}" != "${cc_desired}" ] || [ "${cc_desired}" = "0" ]; then
+  fail_hc config-crash HC1
+  return 1
+fi
+cc_bad="$(kc "get pods -n ${NS} -l app=config-crash --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+if [ -n "${cc_bad}" ]; then
+  fail_hc config-crash HC1
+  return 1
+fi
+ok "PASS: [HC1] config-crash has ${cc_avail}/${cc_desired} replicas available and Running"
+
+# HC2 — sched-crash: must be Running and stable (no Pending, no CrashLoop).
+if ! kc "get deployment sched-crash -n ${NS}" >/dev/null 2>&1; then
+  fail_hc sched-crash HC2
+  return 1
+fi
+sc_desired="$(kc "get deployment sched-crash -n ${NS} -o jsonpath={.spec.replicas}" 2>/dev/null | tr -d '[:space:]')"
+sc_avail="$(kc "get deployment sched-crash -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+sc_ready="$(kc "get deployment sched-crash -n ${NS} -o jsonpath={.status.readyReplicas}" 2>/dev/null | tr -d '[:space:]')"
+sc_desired="${sc_desired:-0}"; sc_avail="${sc_avail:-0}"; sc_ready="${sc_ready:-0}"
+if [ "${sc_avail}" != "${sc_desired}" ] || [ "${sc_ready}" != "${sc_desired}" ] || [ "${sc_desired}" = "0" ]; then
+  fail_hc sched-crash HC2
+  return 1
+fi
+sc_bad="$(kc "get pods -n ${NS} -l app=sched-crash --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+if [ -n "${sc_bad}" ]; then
+  fail_hc sched-crash HC2
+  return 1
+fi
+ok "PASS: [HC2] sched-crash has ${sc_avail}/${sc_desired} replicas available and Running"
+
+# HC3 — incident-app: Deployment healthy AND the service must select the pods
+#        (correct selector).
+if ! kc "get deployment incident-app -n ${NS}" >/dev/null 2>&1; then
+  fail_hc incident-app HC3
+  return 1
+fi
+ia_desired="$(kc "get deployment incident-app -n ${NS} -o jsonpath={.spec.replicas}" 2>/dev/null | tr -d '[:space:]')"
+ia_avail="$(kc "get deployment incident-app -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+ia_ready="$(kc "get deployment incident-app -n ${NS} -o jsonpath={.status.readyReplicas}" 2>/dev/null | tr -d '[:space:]')"
+ia_desired="${ia_desired:-0}"; ia_avail="${ia_avail:-0}"; ia_ready="${ia_ready:-0}"
+if [ "${ia_avail}" != "${ia_desired}" ] || [ "${ia_ready}" != "${ia_desired}" ] || [ "${ia_desired}" = "0" ]; then
+  fail_hc incident-app HC3
+  return 1
+fi
+ia_bad="$(kc "get pods -n ${NS} -l app=incident-app --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+if [ -n "${ia_bad}" ]; then
+  fail_hc incident-app HC3
+  return 1
+fi
+# The service must select at least one endpoint (selector must match the pods).
+ia_ep_count="$(kc "get endpoints incident-svc -n ${NS} -o jsonpath={.subsets[*].addresses[*].ip}" 2>/dev/null | wc -w | tr -d '[:space:]')"
+ia_ep_count="${ia_ep_count:-0}"
+if [ "${ia_ep_count}" -lt 1 ]; then
+  err "FAILED: [HC3] Service 'incident-svc' has no endpoints"
+  err "Object: service/incident-svc endpoints (namespace ${NS})"
+  err "Hint: A Service selects pods by label. If the selector does not match any running pod, the endpoints list is empty."
+  return 1
+fi
+ok "PASS: [HC3] incident-app has ${ia_avail}/${ia_desired} replicas Running and incident-svc has endpoints"
+
+ok "PASS: Lab t01 base + hard challenges complete"
 return 0
