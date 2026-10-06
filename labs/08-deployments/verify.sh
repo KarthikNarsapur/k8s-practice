@@ -43,4 +43,91 @@ if [ "${rs_ready}" != "3" ]; then
 fi
 ok "PASS: replicaset/${rs_name} has 3 ready replicas"
 
+# ============================================================================
+# Hard Challenges
+# ============================================================================
+
+# HC1 — Deployment Controller Forensics: trace-app (nginx:1.25, 3 replicas,
+#        two RS — the active one and the old one scaled to 0).
+if ! kc "get deploy trace-app -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: Deployment 'trace-app' not found"
+  err "Object: deployment/trace-app in namespace ${NS}"
+  err "Hint: The hard-challenge setup should have created it. Re-run lab-start if missing."
+  return 1
+fi
+
+ta_image="$(kc "get deploy trace-app -n ${NS} -o jsonpath={.spec.template.spec.containers[0].image}" 2>/dev/null | tr -d '[:space:]')"
+if [ "${ta_image}" != "nginx:1.25" ]; then
+  err "FAILED: trace-app image is not nginx:1.25"
+  err "Object: deployment/trace-app -> image=${ta_image:-<none>}"
+  err "Hint: The setup rolls trace-app from nginx:1.24 to nginx:1.25. If the image differs, the setup may not have finished."
+  return 1
+fi
+
+ta_rs_count="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='trace-app')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep -c . || true)"
+ta_rs_count="$(echo "${ta_rs_count}" | tr -d '[:space:]')"
+if [ "${ta_rs_count}" != "2" ]; then
+  err "FAILED: Expected 2 ReplicaSets owned by trace-app"
+  err "Object: replicasets owned by deployment/trace-app -> found ${ta_rs_count:-0}"
+  err "Hint: A Deployment keeps old ReplicaSets scaled to 0 after a rollout. Two template revisions produce two ReplicaSets."
+  return 1
+fi
+
+ta_avail="$(kc "get deploy trace-app -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+if [ "${ta_avail}" != "3" ]; then
+  err "FAILED: trace-app does not have 3 available replicas"
+  err "Object: deployment/trace-app -> availableReplicas=${ta_avail:-0}"
+  err "Hint: Ensure the rollout completed. All 3 replicas should be running on the active ReplicaSet."
+  return 1
+fi
+ok "PASS: deployment/trace-app has 2 ReplicaSets and 3 available replicas at nginx:1.25"
+
+# HC2 — Template Change Investigation: tmpl-change (nginx:1.25 + env var,
+#        2 RS, 2 available replicas).
+if ! kc "get deploy tmpl-change -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: Deployment 'tmpl-change' not found"
+  err "Object: deployment/tmpl-change in namespace ${NS}"
+  err "Hint: The hard-challenge setup should have created it. Re-run lab-start if missing."
+  return 1
+fi
+
+tc_rs_count="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='tmpl-change')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep -c . || true)"
+tc_rs_count="$(echo "${tc_rs_count}" | tr -d '[:space:]')"
+if [ "${tc_rs_count}" != "2" ]; then
+  err "FAILED: Expected 2 ReplicaSets owned by tmpl-change"
+  err "Object: replicasets owned by deployment/tmpl-change -> found ${tc_rs_count:-0}"
+  err "Hint: Any change to the pod template creates a new ReplicaSet. Env vars are part of the template."
+  return 1
+fi
+
+tc_avail="$(kc "get deploy tmpl-change -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+if [ "${tc_avail}" != "2" ]; then
+  err "FAILED: tmpl-change does not have 2 available replicas"
+  err "Object: deployment/tmpl-change -> availableReplicas=${tc_avail:-0}"
+  err "Hint: Both replicas must be available after the template change. Check pod status."
+  return 1
+fi
+ok "PASS: deployment/tmpl-change has 2 ReplicaSets and 2 available replicas"
+
+# HC3 — ReplicaSet/Deployment Mismatch: broken-deploy (learner must fix the
+#        excessive memory request so all 3 replicas become Ready).
+if ! kc "get deploy broken-deploy -n ${NS}" >/dev/null 2>&1; then
+  err "FAILED: Deployment 'broken-deploy' not found"
+  err "Object: deployment/broken-deploy in namespace ${NS}"
+  err "Hint: The hard-challenge setup should have created it. Re-run lab-start if missing."
+  return 1
+fi
+
+bd_desired="$(kc "get deploy broken-deploy -n ${NS} -o jsonpath={.spec.replicas}" 2>/dev/null | tr -d '[:space:]')"
+bd_avail="$(kc "get deploy broken-deploy -n ${NS} -o jsonpath={.status.availableReplicas}" 2>/dev/null | tr -d '[:space:]')"
+bd_desired="${bd_desired:-0}"
+bd_avail="${bd_avail:-0}"
+if [ "${bd_avail}" != "${bd_desired}" ] || [ "${bd_desired}" = "0" ]; then
+  err "FAILED: broken-deploy replicas not fully available"
+  err "Object: deployment/broken-deploy -> available=${bd_avail}, desired=${bd_desired}"
+  err "Hint: Pods that request more resources than any node can provide will stay Pending indefinitely. Inspect pod events."
+  return 1
+fi
+ok "PASS: deployment/broken-deploy has all ${bd_desired} replicas available"
+
 return 0

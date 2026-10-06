@@ -46,11 +46,41 @@ Work in the `lab-12` namespace.
    kubectl -n lab-12 describe job pi
    ```
 
+### Hard Challenges
+
+These build on the base lab. `./scripts/lab-start.sh 12` pre-deploys the Jobs
+below. Investigate them in the `lab-12` namespace with
+`kubectl -n lab-12 get jobs` and `kubectl -n lab-12 get pods`.
+
+**HC1 — Job Failure Investigation.** Setup deploys a Job `fail-job` whose
+command always exits 1. It will keep failing up to its `backoffLimit`.
+- Investigate: read the pod logs, exit codes, events, and Job status.
+- **Fix it:** delete `fail-job` and recreate it with a command that exits 0 so
+  it succeeds.
+
+**HC2 — backoffLimit.** Setup deploys a Job `backoff-job` (command `exit 1`,
+`backoffLimit: 3`). It will exhaust retries and be marked Failed.
+- Observe the retry pattern: pods appear with increasing back-off delays; once
+  `backoffLimit` is reached the Job stops creating new pods.
+- **Fix it:** delete `backoff-job` and recreate it with a working command so it
+  completes successfully.
+
+**HC3 — Parallelism and Completions.** Setup deploys a Job `parallel-job` with
+`completions: 5` and `parallelism: 3` (a valid, succeeding command).
+- Watch it progress: up to 3 pods run concurrently until 5 completions are
+  reached.
+- Describe the Job and compare `active`, `succeeded`, and `failed` counters.
+
 ## 5. Expected Outcome
 
 - Job `pi` in `lab-12` reaches `COMPLETIONS 3/3`.
 - Three pods run one after another and end in `Completed`.
 - `kubectl logs job/pi` shows the command output.
+- **HC1:** `fail-job` exists and `status.succeeded >= 1` (you fixed the
+  command).
+- **HC2:** `backoff-job` exists and `status.succeeded >= 1` (you recreated it
+  with a working command).
+- **HC3:** `parallel-job` reaches `COMPLETIONS 5/5`.
 
 ## 6. Verification Criteria
 
@@ -60,6 +90,9 @@ Work in the `lab-12` namespace.
 
 Passes when:
 - Job `pi` in `lab-12` has `status.succeeded == 3`.
+- **HC1:** Job `fail-job` exists and `status.succeeded >= 1`.
+- **HC2:** Job `backoff-job` exists and `status.succeeded >= 1`.
+- **HC3:** Job `parallel-job` exists and `status.succeeded == 5`.
 
 ## 7. Optional Hints
 
@@ -68,6 +101,15 @@ Passes when:
 - `completions` = required successes; `parallelism` = how many pods run at once;
   `backoffLimit` = how many retries before the Job is marked Failed.
 - `restartPolicy: Always` is invalid for a Job — use `Never` or `OnFailure`.
+- **HC1/HC2:** A Job's pod template is immutable, so you cannot patch the broken
+  command in place — delete the Job and recreate it (same name) with a command
+  that exits 0.
+- **HC2:** `backoffLimit` bounds how many pod failures are tolerated before the
+  Job itself is marked `Failed` and stops retrying — watch the failures climb
+  with `kubectl -n lab-12 get pods -w`.
+- **HC3:** `parallelism` caps how many pods run at once; `completions` is the
+  total successes required. With 3 and 5, three run concurrently until five have
+  succeeded.
 
 ## 8. Troubleshooting
 
