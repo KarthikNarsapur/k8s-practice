@@ -45,7 +45,18 @@ fi
 ok "PASS: exactly one ReplicaSet is owned by deployment/app"
 
 # 4. That owned ReplicaSet reports 3 ready replicas.
-rs_name="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='app')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep . | head -1 | tr -d '[:space:]')"
+rs_name="$(
+  kc "get rs -n ${NS} -o json" 2>/dev/null |
+    jq -r '.items[]
+      | select(any(.metadata.ownerReferences[]?;
+                   .kind == "Deployment"
+                   and .name == "app"
+                   and .controller == true))
+      | .metadata.name' |
+    head -1 |
+    tr -d '[:space:]'
+)"
+
 rs_ready="$(kc "get rs ${rs_name} -n ${NS} -o jsonpath={.status.readyReplicas}" 2>/dev/null | tr -d '[:space:]')"
 if [ "${rs_ready}" != "3" ]; then
   err "FAILED: The owned ReplicaSet does not have 3 ready replicas"
