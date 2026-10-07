@@ -20,16 +20,28 @@ if [ "${avail}" != "3" ]; then
 fi
 ok "PASS: deployment/app has 3 available replicas"
 
+
 # 3. Exactly one ReplicaSet owned by 'app' exists, and it has 3 ready.
-#    Find RS objects whose ownerReferences name == app and controller == true.
-owned_count="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='app')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep -c . || true)"
+#    Find RS objects whose controller ownerReference is Deployment/app.
+owned_count="$(
+  kc "get rs -n ${NS} -o json" 2>/dev/null |
+    jq '[.items[]
+          | select(any(.metadata.ownerReferences[]?;
+                       .kind == "Deployment"
+                       and .name == "app"
+                       and .controller == true))]
+         | length'
+)"
+
 owned_count="$(echo "${owned_count}" | tr -d '[:space:]')"
+
 if [ "${owned_count}" != "1" ]; then
   err "FAILED: Expected exactly one ReplicaSet owned by deployment/app"
   err "Object: replicasets in ${NS} owned by deployment/app -> found ${owned_count:-0}"
   err "Hint: A fresh Deployment with no rollouts owns exactly one ReplicaSet. Look at each RS's ownerReferences via 'kubectl get rs -n ${NS} -o wide'."
   return 1
 fi
+
 ok "PASS: exactly one ReplicaSet is owned by deployment/app"
 
 # 4. That owned ReplicaSet reports 3 ready replicas.
