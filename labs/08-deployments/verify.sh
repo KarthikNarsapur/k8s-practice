@@ -87,7 +87,16 @@ if [ "${ta_image}" != "nginx:1.25" ]; then
   return 1
 fi
 
-ta_rs_count="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='trace-app')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep -c . || true)"
+ta_rs_count="$(
+  kc "get rs -n ${NS} -o json" 2>/dev/null |
+    jq '[.items[]
+          | select(any(.metadata.ownerReferences[]?;
+                       .kind == "Deployment"
+                       and .name == "trace-app"
+                       and .controller == true))]
+         | length'
+)"
+
 ta_rs_count="$(echo "${ta_rs_count}" | tr -d '[:space:]')"
 if [ "${ta_rs_count}" != "2" ]; then
   err "FAILED: Expected 2 ReplicaSets owned by trace-app"
