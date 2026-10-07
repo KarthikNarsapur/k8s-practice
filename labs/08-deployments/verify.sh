@@ -123,7 +123,16 @@ if ! kc "get deploy tmpl-change -n ${NS}" >/dev/null 2>&1; then
   return 1
 fi
 
-tc_rs_count="$(kc "get rs -n ${NS} -o jsonpath={range.items[?(@.metadata.ownerReferences[0].name=='tmpl-change')]}{.metadata.name}{'\n'}{end}" 2>/dev/null | grep -c . || true)"
+tc_rs_count="$(
+  kc "get rs -n ${NS} -o json" 2>/dev/null |
+    jq '[.items[]
+          | select(any(.metadata.ownerReferences[]?;
+                       .kind == "Deployment"
+                       and .name == "tmpl-change"
+                       and .controller == true))]
+         | length'
+)"
+
 tc_rs_count="$(echo "${tc_rs_count}" | tr -d '[:space:]')"
 if [ "${tc_rs_count}" != "2" ]; then
   err "FAILED: Expected 2 ReplicaSets owned by tmpl-change"
