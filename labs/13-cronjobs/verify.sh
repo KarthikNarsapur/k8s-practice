@@ -74,6 +74,7 @@ fi
 ok "PASS: [HC2] policy-allow and policy-forbid both exist"
 
 # HC3 — broken-cron: exists, NOT suspended, and at least one child Job succeeded.
+# HC3 — broken-cron: exists, NOT suspended, and at least one child Job succeeded.
 if ! kc "get cronjob broken-cron -n ${NS}" >/dev/null 2>&1; then
   err "FAILED: [HC3] CronJob 'broken-cron' not found"
   err "Object: cronjob/broken-cron in namespace ${NS}"
@@ -90,19 +91,10 @@ if [ "${bc_suspend}" = "true" ]; then
   return 1
 fi
 
-# Count successful Jobs whose names belong to broken-cron.
-# JSONPath returns only the fields we actually need:
-#   Job name + succeeded count
+# Query only successful Jobs belonging to the broken-cron name prefix.
 bc_succeeded="$(
-  kc "get jobs -n ${NS} -o jsonpath={range .items[*]}{.metadata.name}{\"|\"}{.status.succeeded}{\"\\n\"}{end}" 2>/dev/null |
-    awk -F'|' '
-      $1 ~ /^broken-cron-/ && ($2 + 0) >= 1 {
-        count++
-      }
-      END {
-        print count + 0
-      }
-    '
+  kc "get jobs -n ${NS} --no-headers" 2>/dev/null |
+    awk '$1 ~ /^broken-cron-/ && $3 == "1/1" { count++ } END { print count+0 }'
 )"
 
 bc_succeeded="${bc_succeeded:-0}"
