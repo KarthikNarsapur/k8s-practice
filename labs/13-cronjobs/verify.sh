@@ -90,38 +90,19 @@ if [ "${bc_suspend}" = "true" ]; then
   return 1
 fi
 
-# Count successful child Jobs structurally using Kubernetes JSON output.
-# A CronJob-created Job has an ownerReference pointing to the CronJob.
+# Count successful Jobs whose names belong to broken-cron.
+# JSONPath returns only the fields we actually need:
+#   Job name + succeeded count
 bc_succeeded="$(
-  kc "get jobs -n ${NS} -o json" 2>/dev/null |
-    python3 -c '
-import json
-import sys
-
-data = json.load(sys.stdin)
-count = 0
-
-for job in data.get("items", []):
-    metadata = job.get("metadata", {})
-
-    # Ensure this is actually a child of broken-cron.
-    owned_by_broken_cron = any(
-        ref.get("kind") == "CronJob" and
-        ref.get("name") == "broken-cron" and
-        ref.get("controller") is True
-        for ref in metadata.get("ownerReferences", [])
-    )
-
-    # Fallback to the generated Job name if ownerReferences are unavailable.
-    name_match = metadata.get("name", "").startswith("broken-cron-")
-
-    succeeded = job.get("status", {}).get("succeeded", 0) or 0
-
-    if (owned_by_broken_cron or name_match) and succeeded >= 1:
-        count += 1
-
-print(count)
-'
+  kc "get jobs -n ${NS} -o jsonpath={range .items[*]}{.metadata.name}{\"|\"}{.status.succeeded}{\"\\n\"}{end}" 2>/dev/null |
+    awk -F'|' '
+      $1 ~ /^broken-cron-/ && ($2 + 0) >= 1 {
+        count++
+      }
+      END {
+        print count + 0
+      }
+    '
 )"
 
 bc_succeeded="${bc_succeeded:-0}"
