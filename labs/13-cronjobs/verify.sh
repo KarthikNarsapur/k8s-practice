@@ -80,24 +80,59 @@ if ! kc "get cronjob broken-cron -n ${NS}" >/dev/null 2>&1; then
   err "Hint: This CronJob was deployed suspended with a broken command. Unsuspend it and fix the command so its Jobs succeed."
   return 1
 fi
+
 bc_suspend="$(kc "get cronjob broken-cron -n ${NS} -o jsonpath={.spec.suspend}" 2>/dev/null | tr -d '[:space:]')"
+
 if [ "${bc_suspend}" = "true" ]; then
   err "FAILED: [HC3] CronJob 'broken-cron' is still suspended"
   err "Object: cronjob/broken-cron (spec.suspend=${bc_suspend})"
   err "Hint: A suspended CronJob will not create Jobs. Toggle the boolean field that controls scheduling."
   return 1
 fi
-# Count succeeded child Jobs whose name starts with 'broken-cron'.
-bc_succeeded="$(kc "get jobs -n ${NS} -o jsonpath={range .items[*]}{.metadata.name}{\" \"}{.status.succeeded}{\"\\n\"}{end}" 2>/dev/null \
-  | awk '/^broken-cron/ && $2+0>=1 { c++ } END { print c+0 }')"
+
+# Count successful child Jobs structurally using Kubernetes JSON output.
+# A CronJob-created Job has an ownerReference pointing to the CronJob.
+bc_succeeded="$(
+  kc "get jobs -n ${NS} -o json" 2>/dev/null |
+    python3 -c '
+import json
+import sys
+
+data = json.load(sys.stdin)
+count = 0
+
+for job in data.get("items", []):
+    metadata = job.get("metadata", {})
+
+    # Ensure this is actually a child of broken-cron.
+    owned_by_broken_cron = any(
+        ref.get("kind") == "CronJob" and
+        ref.get("name") == "broken-cron" and
+        ref.get("controller") is True
+        for ref in metadata.get("ownerReferences", [])
+    )
+
+    # Fallback to the generated Job name if ownerReferences are unavailable.
+    name_match = metadata.get("name", "").startswith("broken-cron-")
+
+    succeeded = job.get("status", {}).get("succeeded", 0) or 0
+
+    if (owned_by_broken_cron or name_match) and succeeded >= 1:
+        count += 1
+
+print(count)
+'
+)"
+
 bc_succeeded="${bc_succeeded:-0}"
+
 if [ "${bc_succeeded}" -lt 1 ]; then
   err "FAILED: [HC3] CronJob 'broken-cron' has no successful child Jobs"
   err "Object: cronjob/broken-cron (succeeded child jobs=${bc_succeeded})"
   err "Hint: The original command exits non-zero. Replace it with one that succeeds, then wait for a new Job to fire."
   return 1
 fi
-ok "PASS: [HC3] broken-cron is unsuspended and has at least one successful child Job"
 
+ok "PASS: [HC3] broken-cron is unsuspended and has at least one successful child Job"
 ok "PASS: Lab 13 base + hard challenges complete"
 return 0
