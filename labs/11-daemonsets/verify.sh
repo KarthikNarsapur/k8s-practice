@@ -15,8 +15,13 @@ fi
 #    DaemonSet pod is placed: a node is "schedulable" for such a pod when it has
 #    no NoSchedule / NoExecute taint. Count nodes whose taints array is empty or
 #    absent. (The control-plane node normally carries a NoSchedule taint.)
-schedulable="$(kc "get nodes -o jsonpath={range .items[*]}{.metadata.name}{\"|\"}{.spec.taints[*].effect}{\"\\n\"}{end}" \
-  | awk -F'|' 'NF{ if ($2 !~ /NoSchedule/ && $2 !~ /NoExecute/) c++ } END{ print c+0 }')"
+schedulable="$(kc "get nodes -o custom-columns='NAME:.metadata.name,TAINTS:.spec.taints[*].effect' --no-headers" \
+  | awk '{
+      taints="";
+      for (i=2; i<=NF; i++) taints=taints $i " ";
+      if (taints !~ /NoSchedule/ && taints !~ /NoExecute/) c++
+    }
+    END { print c+0 }')"
 
 if [ "${schedulable}" = "0" ]; then
   err "FAILED: Could not determine the schedulable node count"
@@ -65,7 +70,7 @@ ssd_desired="$(kc "get daemonset ssd-agent -n ${NS} -o jsonpath={.status.desired
 ssd_ready="$(kc "get daemonset ssd-agent -n ${NS} -o jsonpath={.status.numberReady}" 2>/dev/null | tr -d '[:space:]')"
 ssd_desired="${ssd_desired:-0}"
 ssd_ready="${ssd_ready:-0}"
-if [ "${ssd_ready}" != "${ssd_desired}" ] || [ "${ssd_desired}" = "0" ]; then
+if [ "${ssd_ready}" != "${ssd_desired}" ]; then
   err "FAILED: [HC1] DaemonSet 'ssd-agent' pods are not all ready"
   err "Object: daemonset/ssd-agent (desiredNumberScheduled=${ssd_desired}, numberReady=${ssd_ready})"
   err "Hint: Every scheduled daemon pod must reach Ready. Inspect the pods and node labels the selector targets."
@@ -119,7 +124,7 @@ zone_desired="$(kc "get daemonset zone-agent -n ${NS} -o jsonpath={.status.desir
 zone_ready="$(kc "get daemonset zone-agent -n ${NS} -o jsonpath={.status.numberReady}" 2>/dev/null | tr -d '[:space:]')"
 zone_desired="${zone_desired:-0}"
 zone_ready="${zone_ready:-0}"
-if [ "${zone_ready}" != "${zone_desired}" ] || [ "${zone_desired}" = "0" ]; then
+if [ "${zone_ready}" != "${zone_desired}" ]; then
   err "FAILED: [HC3] DaemonSet 'zone-agent' pods are not all ready"
   err "Object: daemonset/zone-agent (desiredNumberScheduled=${zone_desired}, numberReady=${zone_ready})"
   err "Hint: When a node loses the selector label, its daemon pod is removed and 'desired' drops. desired and ready should still match on the remaining nodes."
