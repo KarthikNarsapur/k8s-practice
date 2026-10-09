@@ -9,19 +9,19 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 | Lab | Topic | Status | Attempts | Completed |
 |-----|-------|--------|----------|-----------|
 | 01 | Cluster architecture | Completed | 1 | 2026-09-30 |
-| 02 | kubectl basics | Not Started | 0 | |
-| 03 | Pods | Not Started | 0 | |
-| 04 | Pod lifecycle | Not Started | 0 | |
-| 05 | Labels and selectors | Not Started | 0 | |
-| 06 | Namespaces | Not Started | 0 | |
-| 07 | ReplicaSets | Not Started | 0 | |
-| 08 | Deployments | Not Started | 0 | |
-| 09 | Rolling updates | Not Started | 0 | |
-| 10 | Rollbacks | Not Started | 0 | |
-| 11 | DaemonSets | Not Started | 0 | |
-| 12 | Jobs | Not Started | 0 | |
-| 13 | CronJobs | Not Started | 0 | |
-| t01 | Troubleshooting: CrashLoopBackOff | Not Started | 0 | |
+| 02 | kubectl basics | Completed | 1 | 2026-10-05 |
+| 03 | Pods | Completed | 1 | 2026-10-06 |
+| 04 | Pod lifecycle | Completed | 1 | 2026-10-06 |
+| 05 | Labels and selectors | Completed | 1 | 2026-10-06 |
+| 06 | Namespaces | Completed | 1 | 2026-10-06 |
+| 07 | ReplicaSets | Completed | 1 | 2026-10-07 |
+| 08 | Deployments | Completed | 5 | 2026-10-07 |
+| 09 | Rolling updates | Completed | 1 | 2026-10-08 |
+| 10 | Rollbacks | Completed | 1 | 2026-10-08 |
+| 11 | DaemonSets | Completed | 3 | 2026-10-08 |
+| 12 | Jobs | Completed | 1 | 2026-10-08 |
+| 13 | CronJobs | Completed | 6 | 2026-10-09 |
+| t01 | Troubleshooting: CrashLoopBackOff | Completed | 3 | 2026-10-09 |
 
 ## Roadmap — future phases (not yet implemented)
 
