@@ -33,7 +33,7 @@ if [ "${available}" != "${desired}" ] || [ "${ready}" != "${desired}" ] || [ "${
 fi
 
 # 3. Every pod must be Running (not CrashLoopBackOff / Error / etc.).
-bad_phase="$(kc "get pods -n ${NS} -l app=broken-app --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1"="$3}')"
+bad_phase="$(kc "get pods -n ${NS} -l app=broken-app -o custom-columns=NAME:.metadata.name,PHASE:.status.phase --no-headers" 2>/dev/null | awk 'NF >= 2 && $2 != "Running" {print $1"="$2}')"
 if [ -n "${bad_phase}" ]; then
   fail_unstable "Pods not Running: ${bad_phase}"
   return 1
@@ -86,7 +86,7 @@ if [ "${cc_avail}" != "${cc_desired}" ] || [ "${cc_ready}" != "${cc_desired}" ] 
   fail_hc config-crash HC1
   return 1
 fi
-cc_bad="$(kc "get pods -n ${NS} -l app=config-crash --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+cc_bad="$(kc "get pods -n ${NS} -l app=config-crash -o custom-columns=NAME:.metadata.name,PHASE:.status.phase --no-headers" 2>/dev/null | awk 'NF >= 2 && $2 != "Running" {print $1}')"
 if [ -n "${cc_bad}" ]; then
   fail_hc config-crash HC1
   return 1
@@ -106,7 +106,7 @@ if [ "${sc_avail}" != "${sc_desired}" ] || [ "${sc_ready}" != "${sc_desired}" ] 
   fail_hc sched-crash HC2
   return 1
 fi
-sc_bad="$(kc "get pods -n ${NS} -l app=sched-crash --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+sc_bad="$(kc "get pods -n ${NS} -l app=sched-crash -o custom-columns=NAME:.metadata.name,PHASE:.status.phase --no-headers" 2>/dev/null | awk 'NF >= 2 && $2 != "Running" {print $1}')"
 if [ -n "${sc_bad}" ]; then
   fail_hc sched-crash HC2
   return 1
@@ -127,7 +127,7 @@ if [ "${ia_avail}" != "${ia_desired}" ] || [ "${ia_ready}" != "${ia_desired}" ] 
   fail_hc incident-app HC3
   return 1
 fi
-ia_bad="$(kc "get pods -n ${NS} -l app=incident-app --no-headers" 2>/dev/null | awk '$3 != "Running" {print $1}')"
+ia_bad="$(kc "get pods -n ${NS} -l app=incident-app -o custom-columns=NAME:.metadata.name,PHASE:.status.phase --no-headers" 2>/dev/null | awk 'NF >= 2 && $2 != "Running" {print $1}')"
 if [ -n "${ia_bad}" ]; then
   fail_hc incident-app HC3
   return 1
