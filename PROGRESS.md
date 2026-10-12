@@ -48,11 +48,11 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 
 | Level | Topic | Status |
 |-------|-------|--------|
-| 5 | Storage (PV, PVC, StorageClass, dynamic provisioning, StatefulSets) | Not Started |
-| 6 | Scheduling (nodeSelector, affinity, taints, tolerations, PDB) | Not Started |
-| 7 | Security (ServiceAccounts, RBAC, SecurityContext, Pod Security) | Not Started |
-| 8 | Scaling (HPA, Metrics Server, autoscaling, capacity) | Not Started |
-| 9 | Observability (logs, events, metrics, Prometheus, Grafana, alerting) | Not Started |
-| 10 | Troubleshooting suite (ImagePull, Pending, DNS, PVC, probes, RBAC, node NotReady, kubelet/CNI failure) | Not Started |
-| 11 | Cluster admin (cordon/drain, kubelet, certs, upgrade, etcd backup/restore) | Not Started |
-| 12 | Realistic 3-tier app + failure scenarios | Not Started |
+| 6 | Storage (PV, PVC, StorageClass, dynamic provisioning, StatefulSets) | Not Started |
+| 7 | Scheduling (nodeSelector, affinity, taints, tolerations, PDB) | Not Started |
+| 8 | Security (ServiceAccounts, RBAC, SecurityContext, Pod Security) | Not Started |
+| 9 | Scaling (HPA, Metrics Server, autoscaling, capacity) | Not Started |
+| 10 | Observability (logs, events, metrics, Prometheus, Grafana, alerting) | Not Started |
+| 11 | Troubleshooting suite (ImagePull, Pending, DNS, PVC, probes, RBAC, node NotReady, kubelet/CNI failure) | Not Started |
+| 12 | Cluster admin (cordon/drain, kubelet, certs, upgrade, etcd backup/restore) | Not Started |
+| 13 | Realistic 3-tier app + failure scenarios | Not Started |
