@@ -1,8 +1,7 @@
 # Progress Tracker
 
 Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
-`Completed`. Record how many times you ran `lab-verify.sh` before passing under
-**Attempts**, and the date under **Completed**.
+`Completed`. Record verifier attempts under **Attempts** and the date under **Completed**.
 
 ## Phase 1 — shipped labs
 
@@ -23,11 +22,21 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 | 13 | CronJobs | Completed | 6 | 2026-10-09 |
 | t01 | Troubleshooting: CrashLoopBackOff | Completed | 3 | 2026-10-09 |
 
-## Roadmap — future phases (not yet implemented)
+## Phase 2 — Networking
+
+| Lab | Topic | Status | Attempts | Completed |
+|-----|-------|--------|----------|-----------|
+| 14 | Services and Endpoints | Not Started | 0 | |
+| 15 | Service DNS | Not Started | 0 | |
+| 16 | NodePort Exposure | Not Started | 0 | |
+| 17 | NetworkPolicy Segmentation | Not Started | 0 | |
+| 18 | Ingress Routing | Not Started | 0 | |
+| 19 | Networking Troubleshooting Capstone | Not Started | 0 | |
+
+## Roadmap — future phases
 
 | Level | Topic | Status |
 |-------|-------|--------|
-| 3 | Networking (ClusterIP, NodePort, DNS, Ingress, NetworkPolicy) | Not Started |
 | 4 | Configuration (ConfigMaps, Secrets, env, volumes, requests/limits) | Not Started |
 | 5 | Storage (PV, PVC, StorageClass, dynamic provisioning, StatefulSets) | Not Started |
 | 6 | Scheduling (nodeSelector, affinity, taints, tolerations, PDB) | Not Started |
