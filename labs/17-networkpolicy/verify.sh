@@ -38,7 +38,7 @@ check_rule() {
   ok "PASS: ${name} selector, direction, and required rule fields are correct"
 }
 check_deny() {
-  local name="$1" tier="$2" selector ptype ingress
+  local name="$1" tier="$2" selector ptype ingress rules
   if ! kc "get networkpolicy ${name} -n ${NS}" >/dev/null 2>&1; then
     fail_check "NetworkPolicy '${name}' not found" "networkpolicy/${name}" "A deny-ingress policy needs a destination selector and no allowed ingress rules."
     return 1
@@ -46,7 +46,8 @@ check_deny() {
   selector="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.podSelector.matchLabels.tier}")"
   ptype="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.policyTypes[0]}")"
   ingress="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.ingress[0].from[0].podSelector.matchLabels.tier}")"
-  if [ "${selector}" != "${tier}" ] || [ "${ptype}" != "Ingress" ] || [ -n "${ingress}" ]; then
+  rules="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.ingress[0]}")"
+  if [ "${selector}" != "${tier}" ] || [ "${ptype}" != "Ingress" ] || [ -n "${ingress}" ] || [ -n "${rules}" ]; then
     fail_check "NetworkPolicy '${name}' does not express the expected ingress isolation" "networkpolicy/${name}" "Check the selected destination tier, policyTypes, and whether any ingress allow rules remain."
     return 1
   fi
