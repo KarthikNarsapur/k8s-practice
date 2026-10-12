@@ -211,7 +211,7 @@ spec:
     app: app-h
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
     nodePort: 30088
 ---
 YAML"
