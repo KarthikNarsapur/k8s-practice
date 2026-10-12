@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-a
+  namespace: lab-18
+spec:
+  selector:
+    app: app-a
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-b
+  namespace: lab-18
+spec:
+  selector:
+    app: app-b
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-c
+  namespace: lab-18
+spec:
+  selector:
+    app: app-c
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-d
+  namespace: lab-18
+spec:
+  selector:
+    app: app-d
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-e
+  namespace: lab-18
+spec:
+  selector:
+    app: app-e
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-f
+  namespace: lab-18
+spec:
+  selector:
+    app: app-f
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-g
+  namespace: lab-18
+spec:
+  selector:
+    app: app-g
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-h
+  namespace: lab-18
+spec:
+  selector:
+    app: app-h
+  ports:
+  - port: 80
+    targetPort: 80
+---

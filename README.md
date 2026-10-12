@@ -53,7 +53,7 @@ phases) are in [`DESIGN.md`](DESIGN.md).
 │   └── aws-stop.sh aws-start.sh
 └── labs/                     # the labs
     ├── 01-cluster-architecture/ ... 13-cronjobs/
-    ├── 14-services-endpoints/ ... 17-networkpolicy/\n    └── t01-crashloopbackoff/
+    ├── 14-services-endpoints/ ... 18-ingress-routing/\n    └── t01-crashloopbackoff/
 ```
 
 ---
@@ -256,12 +256,12 @@ ships Levels 1–2 plus a Level-10 troubleshooting starter:
 | Level | Theme | Labs in this phase |
 |-------|-------|--------------------|
 | 1 | Fundamentals | 01 architecture, 02 kubectl, 03 pods, 04 lifecycle, 05 labels/selectors, 06 namespaces |
-| 2 | Workloads | 07 replicasets, 08 deployments, 09 rolling updates, 10 rollbacks, 11 daemonsets, 12 jobs, 13 cronjobs |\n| 3 | Networking foundations → advanced | 14 Services/endpoints, 15 DNS, 16 NodePort, 17 NetworkPolicy |
+| 2 | Workloads | 07 replicasets, 08 deployments, 09 rolling updates, 10 rollbacks, 11 daemonsets, 12 jobs, 13 cronjobs |\n| 3 | Networking foundations → advanced | 14 Services/endpoints, 15 DNS, 16 NodePort, 17 NetworkPolicy, 18 Ingress |
 | 10 | Troubleshooting | t01 CrashLoopBackOff |
 
 Track your status in [`PROGRESS.md`](PROGRESS.md).
 
-Networking Labs 14–17 now progress from Services and DNS through NodePort and NetworkPolicy. Ingress routing and an integrated connectivity troubleshooting capstone remain planned.\n\nLater phases (Config, Storage, Scheduling, Security, Scaling,
+Networking Labs 14–18 progress from Services and DNS through NodePort, NetworkPolicy, and Ingress. The integrated connectivity troubleshooting capstone is planned as Lab 19.\n\nLater phases (Config, Storage, Scheduling, Security, Scaling,
 Observability, full Troubleshooting suite, Cluster admin/upgrade, and a
 realistic 3-tier app) are designed for but not yet implemented — the Terraform
 is structured so add-ons (EKS, Helm, ArgoCD, Prometheus, Cilium, EBS CSI, IRSA)
