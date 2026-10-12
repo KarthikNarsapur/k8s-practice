@@ -1,0 +1,232 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-a
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-a
+  template:
+    metadata:
+      labels:
+        app: app-a
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-a
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-b
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-b
+  template:
+    metadata:
+      labels:
+        app: app-b
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-b
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-c
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-c
+  template:
+    metadata:
+      labels:
+        app: app-c
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-c
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-d
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-d
+  template:
+    metadata:
+      labels:
+        app: app-d
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-d
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-e
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-e
+  template:
+    metadata:
+      labels:
+        app: app-e
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-e
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-f
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-f
+  template:
+    metadata:
+      labels:
+        app: app-f
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /etc/nginx
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-f
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-g
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-g
+  template:
+    metadata:
+      labels:
+        app: app-g
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: missing-volume
+          mountPath: /wrong/config
+          readOnly: false
+      volumes:
+      - name: app-config
+        configMap:
+          name: files-g
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-h
+  namespace: lab-23
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-h
+  template:
+    metadata:
+      labels:
+        app: app-h
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: app-config
+          mountPath: /wrong/config
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: missing-config
+---

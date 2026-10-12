@@ -1,0 +1,264 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-a
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-a
+  template:
+    metadata:
+      labels:
+        app: app-a
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-a
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-a-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-b
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-b
+  template:
+    metadata:
+      labels:
+        app: app-b
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-b
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-b-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-c
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-c
+  template:
+    metadata:
+      labels:
+        app: app-c
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-c
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-c-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-d
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-d
+  template:
+    metadata:
+      labels:
+        app: app-d
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-d
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-d-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-e
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-e
+  template:
+    metadata:
+      labels:
+        app: app-e
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-e
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-e-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-f
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-f
+  template:
+    metadata:
+      labels:
+        app: app-f
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-f
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-f-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-g
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-g
+  template:
+    metadata:
+      labels:
+        app: app-g
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-g
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-g-logs
+              key: LOG_LEVEL
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-h
+  namespace: lab-22
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-h
+  template:
+    metadata:
+      labels:
+        app: app-h
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+        env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: missing-h
+              key: APP_MODE
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: missing-h-logs
+              key: LOG_LEVEL
+
+---

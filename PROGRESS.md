@@ -33,11 +33,21 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 | 18 | Ingress Routing | Not Started | 0 | |
 | 19 | Networking Troubleshooting Capstone | Not Started | 0 | |
 
+## Phase 3 — Configuration
+
+| Lab | Topic | Status | Attempts | Completed |
+|-----|-------|--------|----------|-----------|
+| 20 | ConfigMaps | Not Started | 0 | |
+| 21 | Secrets | Not Started | 0 | |
+| 22 | Environment variable injection | Not Started | 0 | |
+| 23 | ConfigMap volumes | Not Started | 0 | |
+| 24 | Liveness and readiness probes | Not Started | 0 | |
+| 25 | Resource requests and limits | Not Started | 0 | |
+
 ## Roadmap — future phases
 
 | Level | Topic | Status |
 |-------|-------|--------|
-| 4 | Configuration (ConfigMaps, Secrets, env, volumes, requests/limits) | Not Started |
 | 5 | Storage (PV, PVC, StorageClass, dynamic provisioning, StatefulSets) | Not Started |
 | 6 | Scheduling (nodeSelector, affinity, taints, tolerations, PDB) | Not Started |
 | 7 | Security (ServiceAccounts, RBAC, SecurityContext, Pod Security) | Not Started |

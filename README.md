@@ -53,11 +53,19 @@ phases) are in [`DESIGN.md`](DESIGN.md).
 │   └── aws-stop.sh aws-start.sh
 └── labs/                     # the labs
     ├── 01-cluster-architecture/ ... 13-cronjobs/
-    ├── 14-services-endpoints/ ... 19-networking-troubleshooting/
+    ├── 14-services-endpoints/ ... 25-resource-requests-limits/
     └── t01-crashloopbackoff/
 ```
 
 ---
+
+## Learning progression
+
+| Level | Labs | Focus |
+|---|---|---|
+| 1–3 | 01–13, t01 | Workloads, lifecycle, and CrashLoopBackOff troubleshooting |
+| 4 | 14–19 | Services, DNS, NodePort, NetworkPolicy, Ingress, networking capstone |
+| 5 | 20–25 | ConfigMaps, Secrets, environment injection, config volumes, probes, requests/limits |
 
 ## Prerequisites
 
