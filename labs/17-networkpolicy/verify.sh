@@ -28,7 +28,7 @@ check_rule() {
     else
       actualpeer="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath='{.spec.egress[0].to[0].namespaceSelector.matchLabels.kubernetes\.io/metadata\.name}'")"
       actualport="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.egress[0].ports[0].port}")"
-  proto="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.egress[0].ports[0].protocol}")"
+  actualproto="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.egress[0].ports[0].protocol}")"
     fi
     if [ "${actualpeer}" != "${peer}" ] || [ "${actualport}" != "${port}" ] || { [ -n "${actualproto}" ] && [ "${actualproto}" != "TCP" ]; }; then
       fail_check "NetworkPolicy '${name}' has an incorrect peer or port" "networkpolicy/${name}: peer=${actualpeer:-empty}, port=${actualport:-empty}" "Inspect the allowed peer selector, protocol, and destination port for the intended traffic."
@@ -63,6 +63,7 @@ check_dns() {
   ptype="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.policyTypes[0]}")"
   peer="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath='{.spec.egress[0].to[0].namespaceSelector.matchLabels.kubernetes\.io/metadata\.name}'")"
   port="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.egress[0].ports[0].port}")"
+  proto="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.egress[0].ports[0].protocol}")"
   if [ "${selector}" != "frontend" ] || [ "${ptype}" != "Egress" ] || [ "${peer}" != "kube-system" ] || [ "${port}" != "53" ] || [ "${proto}" != "UDP" ]; then
     fail_check "NetworkPolicy '${name}' does not allow the expected DNS egress" "networkpolicy/${name}: tier=${selector:-empty}, direction=${ptype:-empty}, namespace=${peer:-empty}, port=${port:-empty}, protocol=${proto:-empty}" "Check the source Pod selector, namespace peer, egress direction, and DNS port."
     return 1
