@@ -10,7 +10,7 @@ metadata:
   name: lab18-ingress-controller
 rules:
 - apiGroups: [""]
-  resources: ["configmaps","endpoints","nodes","pods","secrets","services","events"]
+  resources: ["configmaps","endpoints","namespaces","nodes","pods","secrets","services","events"]
   verbs: ["get","list","watch","create","patch","update"]
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses","ingressclasses"]
