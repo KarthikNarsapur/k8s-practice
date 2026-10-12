@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-info "Lab 15: deploy sample workloads, DNS challenge Services, and an in-cluster DNS client."
+info "Lab 15: deploy sample workloads, four broken HC Services, and an in-cluster DNS client."
 remote_exec "cat <<'YAML' | kubectl apply -n ${NS} -f -
 apiVersion: apps/v1
 kind: Deployment
@@ -161,50 +161,6 @@ spec:
         image: nginx:1.27
         ports:
         - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dns-a
-spec:
-  selector:
-    app: app-a
-  ports:
-  - port: 80
-    targetPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dns-b
-spec:
-  selector:
-    app: app-b
-  ports:
-  - port: 80
-    targetPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dns-c
-spec:
-  selector:
-    app: app-c
-  ports:
-  - port: 80
-    targetPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dns-d
-spec:
-  selector:
-    app: app-d
-  ports:
-  - port: 80
-    targetPort: 80
 ---
 apiVersion: v1
 kind: Service
