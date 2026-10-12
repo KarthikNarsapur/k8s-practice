@@ -21,10 +21,10 @@ spec:
         resources:
           requests:
             cpu: "10m"
-            memory: "8Mi"
+            memory: "64Mi"
           limits:
-            cpu: "50m"
-            memory: "16Mi"
+            cpu: "500m"
+            memory: "128Mi"
 
 ---
 apiVersion: apps/v1
@@ -50,10 +50,10 @@ spec:
         resources:
           requests:
             cpu: "10m"
-            memory: "8Mi"
+            memory: "64Mi"
           limits:
-            cpu: "50m"
-            memory: "16Mi"
+            cpu: "500m"
+            memory: "128Mi"
 
 ---
 apiVersion: apps/v1
@@ -79,10 +79,10 @@ spec:
         resources:
           requests:
             cpu: "10m"
-            memory: "8Mi"
+            memory: "64Mi"
           limits:
-            cpu: "50m"
-            memory: "16Mi"
+            cpu: "500m"
+            memory: "128Mi"
 
 ---
 apiVersion: apps/v1
@@ -108,10 +108,10 @@ spec:
         resources:
           requests:
             cpu: "10m"
-            memory: "8Mi"
+            memory: "64Mi"
           limits:
-            cpu: "50m"
-            memory: "16Mi"
+            cpu: "500m"
+            memory: "128Mi"
 
 ---
 apiVersion: apps/v1

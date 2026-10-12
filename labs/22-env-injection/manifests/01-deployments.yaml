@@ -27,7 +27,7 @@ spec:
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: missing-a-logs
+              name: settings-a-logs
               key: LOG_LEVEL
 
 ---
@@ -60,7 +60,7 @@ spec:
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: missing-b-logs
+              name: settings-b-logs
               key: LOG_LEVEL
 
 ---
@@ -93,7 +93,7 @@ spec:
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: missing-c-logs
+              name: settings-c-logs
               key: LOG_LEVEL
 
 ---
@@ -126,7 +126,7 @@ spec:
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: missing-d-logs
+              name: settings-d-logs
               key: LOG_LEVEL
 
 ---
