@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Structured API output only; normalize SSM's textual empty sentinel.
+# Read structured Kubernetes API fields, normalize SSM empty output, and never parse display tables.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
 fields() {
   local out
-  out="$(kc "$1" 2>/dev/null || true)"
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
   case "${out}" in None|"<no value>") out="";; esac
   printf '%s' "${out}"
 }
@@ -13,8 +13,8 @@ check_secret_a() {
     fail_check "Required secret 'secret-a' is missing" "secret/secret-a" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret secret-a -n ${NS} -o jsonpath='{.data.username}'")"
-  if [ "${actual}" != "ZGVtby11c2Vy" ]; then
+  actual="$(fields "get secret secret-a -n ${NS} -o jsonpath='{.type}|{.data.username}'")"
+  if [ "${actual}" != "Opaque|ZGVtby11c2Vy" ]; then
     fail_check "secret 'secret-a' has incorrect configuration" "secret/secret-a" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -26,8 +26,8 @@ check_secret_b() {
     fail_check "Required secret 'secret-b' is missing" "secret/secret-b" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret secret-b -n ${NS} -o jsonpath='{.data.password}'")"
-  if [ "${actual}" != "cm90YXRlLW1lLTEyMw==" ]; then
+  actual="$(fields "get secret secret-b -n ${NS} -o jsonpath='{.type}|{.data.password}'")"
+  if [ "${actual}" != "Opaque|cm90YXRlLW1lLTEyMw==" ]; then
     fail_check "secret 'secret-b' has incorrect configuration" "secret/secret-b" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -39,8 +39,8 @@ check_secret_c() {
     fail_check "Required secret 'secret-c' is missing" "secret/secret-c" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret secret-c -n ${NS} -o jsonpath='{.data.api-token}'")"
-  if [ "${actual}" != "ZmFrZS10b2tlbi03ODk=" ]; then
+  actual="$(fields "get secret secret-c -n ${NS} -o jsonpath='{.type}|{.data.api-token}'")"
+  if [ "${actual}" != "Opaque|ZmFrZS10b2tlbi03ODk=" ]; then
     fail_check "secret 'secret-c' has incorrect configuration" "secret/secret-c" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -52,8 +52,8 @@ check_secret_d() {
     fail_check "Required secret 'secret-d' is missing" "secret/secret-d" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret secret-d -n ${NS} -o jsonpath='{.data.database}'")"
-  if [ "${actual}" != "b3JkZXJz" ]; then
+  actual="$(fields "get secret secret-d -n ${NS} -o jsonpath='{.type}|{.data.database}'")"
+  if [ "${actual}" != "Opaque|b3JkZXJz" ]; then
     fail_check "secret 'secret-d' has incorrect configuration" "secret/secret-d" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -65,8 +65,8 @@ check_hc_secret_e() {
     fail_check "Required secret 'hc-secret-e' is missing" "secret/hc-secret-e" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret hc-secret-e -n ${NS} -o jsonpath='{.data.username}'")"
-  if [ "${actual}" != "ZGVtby11c2Vy" ]; then
+  actual="$(fields "get secret hc-secret-e -n ${NS} -o jsonpath='{.type}|{.data.username}'")"
+  if [ "${actual}" != "Opaque|ZGVtby11c2Vy" ]; then
     fail_check "secret 'hc-secret-e' has incorrect configuration" "secret/hc-secret-e" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -78,8 +78,8 @@ check_hc_secret_f() {
     fail_check "Required secret 'hc-secret-f' is missing" "secret/hc-secret-f" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret hc-secret-f -n ${NS} -o jsonpath='{.data.password}'")"
-  if [ "${actual}" != "cm90YXRlLW1lLTEyMw==" ]; then
+  actual="$(fields "get secret hc-secret-f -n ${NS} -o jsonpath='{.type}|{.data.password}'")"
+  if [ "${actual}" != "Opaque|cm90YXRlLW1lLTEyMw==" ]; then
     fail_check "secret 'hc-secret-f' has incorrect configuration" "secret/hc-secret-f" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -91,8 +91,8 @@ check_hc_secret_g() {
     fail_check "Required secret 'hc-secret-g' is missing" "secret/hc-secret-g" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret hc-secret-g -n ${NS} -o jsonpath='{.data.api-token}'")"
-  if [ "${actual}" != "ZmFrZS10b2tlbi03ODk=" ]; then
+  actual="$(fields "get secret hc-secret-g -n ${NS} -o jsonpath='{.type}|{.data.api-token}'")"
+  if [ "${actual}" != "Opaque|ZmFrZS10b2tlbi03ODk=" ]; then
     fail_check "secret 'hc-secret-g' has incorrect configuration" "secret/hc-secret-g" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi
@@ -104,8 +104,8 @@ check_hc_secret_h() {
     fail_check "Required secret 'hc-secret-h' is missing" "secret/hc-secret-h" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret hc-secret-h -n ${NS} -o jsonpath='{.data.database}'")"
-  if [ "${actual}" != "b3JkZXJz" ]; then
+  actual="$(fields "get secret hc-secret-h -n ${NS} -o jsonpath='{.type}|{.data.database}'")"
+  if [ "${actual}" != "Opaque|b3JkZXJz" ]; then
     fail_check "secret 'hc-secret-h' has incorrect configuration" "secret/hc-secret-h" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
   fi

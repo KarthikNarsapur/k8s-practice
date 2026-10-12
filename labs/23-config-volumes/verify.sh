@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Structured API output only; normalize SSM's textual empty sentinel.
+# Read structured Kubernetes API fields, normalize SSM empty output, and never parse display tables.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
 fields() {
   local out
-  out="$(kc "$1" 2>/dev/null || true)"
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
   case "${out}" in None|"<no value>") out="";; esac
   printf '%s' "${out}"
 }
@@ -13,9 +13,9 @@ check_app_a() {
     fail_check "Required deployment 'app-a' is missing" "deployment/app-a" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-a -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-a' has incorrect configuration" "deployment/app-a" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-a -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-a" ]; then
+    fail_check "deployment 'app-a' has incorrect configuration" "deployment/app-a" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-a -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -31,9 +31,9 @@ check_app_b() {
     fail_check "Required deployment 'app-b' is missing" "deployment/app-b" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-b -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-b' has incorrect configuration" "deployment/app-b" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-b -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-b" ]; then
+    fail_check "deployment 'app-b' has incorrect configuration" "deployment/app-b" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-b -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -49,9 +49,9 @@ check_app_c() {
     fail_check "Required deployment 'app-c' is missing" "deployment/app-c" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-c -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-c' has incorrect configuration" "deployment/app-c" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-c -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-c" ]; then
+    fail_check "deployment 'app-c' has incorrect configuration" "deployment/app-c" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-c -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -67,9 +67,9 @@ check_app_d() {
     fail_check "Required deployment 'app-d' is missing" "deployment/app-d" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-d -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-d' has incorrect configuration" "deployment/app-d" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-d -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-d" ]; then
+    fail_check "deployment 'app-d' has incorrect configuration" "deployment/app-d" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-d -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -85,9 +85,9 @@ check_app_e() {
     fail_check "Required deployment 'app-e' is missing" "deployment/app-e" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-e -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-e' has incorrect configuration" "deployment/app-e" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-e -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-e" ]; then
+    fail_check "deployment 'app-e' has incorrect configuration" "deployment/app-e" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-e -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -103,9 +103,9 @@ check_app_f() {
     fail_check "Required deployment 'app-f' is missing" "deployment/app-f" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-f -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-f' has incorrect configuration" "deployment/app-f" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-f -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-f" ]; then
+    fail_check "deployment 'app-f' has incorrect configuration" "deployment/app-f" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-f -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -121,9 +121,9 @@ check_app_g() {
     fail_check "Required deployment 'app-g' is missing" "deployment/app-g" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-g -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-g' has incorrect configuration" "deployment/app-g" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-g -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-g" ]; then
+    fail_check "deployment 'app-g' has incorrect configuration" "deployment/app-g" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-g -n ${NS} -o jsonpath={.status.availableReplicas}")"
@@ -139,9 +139,9 @@ check_app_h() {
     fail_check "Required deployment 'app-h' is missing" "deployment/app-h" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-h -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'")"
-  if [ "${actual}" != "/etc/app-config" ]; then
-    fail_check "deployment 'app-h' has incorrect configuration" "deployment/app-h" "Trace the volume name from the container mount to the Pod volume and ConfigMap, then check mount path and readiness."
+  actual="$(fields "get deployment app-h -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].volumeMounts[0].name}|{.spec.template.spec.containers[0].volumeMounts[0].mountPath}|{.spec.template.spec.containers[0].volumeMounts[0].readOnly}|{.spec.template.spec.volumes[0].name}|{.spec.template.spec.volumes[0].configMap.name}}'")"
+  if [ "${actual}" != "app-config|/etc/app-config|true|app-config|files-h" ]; then
+    fail_check "deployment 'app-h' has incorrect configuration" "deployment/app-h" "Trace the container's volume mount to the declared Pod volume and matching ConfigMap, including read-only behavior."
     return 1
   fi
   available="$(fields "get deployment app-h -n ${NS} -o jsonpath={.status.availableReplicas}")"

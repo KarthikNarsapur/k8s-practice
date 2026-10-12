@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Structured API output only; normalize SSM's textual empty sentinel.
+# Read structured Kubernetes API fields, normalize SSM empty output, and never parse display tables.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
 fields() {
   local out
-  out="$(kc "$1" 2>/dev/null || true)"
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
   case "${out}" in None|"<no value>") out="";; esac
   printf '%s' "${out}"
 }
@@ -13,8 +13,8 @@ check_app_a() {
     fail_check "Required deployment 'app-a' is missing" "deployment/app-a" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-a -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-a -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-a' has incorrect configuration" "deployment/app-a" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -31,8 +31,8 @@ check_app_b() {
     fail_check "Required deployment 'app-b' is missing" "deployment/app-b" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-b -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-b -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-b' has incorrect configuration" "deployment/app-b" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -49,8 +49,8 @@ check_app_c() {
     fail_check "Required deployment 'app-c' is missing" "deployment/app-c" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-c -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-c -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-c' has incorrect configuration" "deployment/app-c" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -67,8 +67,8 @@ check_app_d() {
     fail_check "Required deployment 'app-d' is missing" "deployment/app-d" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-d -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-d -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-d' has incorrect configuration" "deployment/app-d" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -85,8 +85,8 @@ check_app_e() {
     fail_check "Required deployment 'app-e' is missing" "deployment/app-e" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-e -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-e -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-e' has incorrect configuration" "deployment/app-e" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -103,8 +103,8 @@ check_app_f() {
     fail_check "Required deployment 'app-f' is missing" "deployment/app-f" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-f -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-f -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-f' has incorrect configuration" "deployment/app-f" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -121,8 +121,8 @@ check_app_g() {
     fail_check "Required deployment 'app-g' is missing" "deployment/app-g" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-g -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-g -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-g' has incorrect configuration" "deployment/app-g" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi
@@ -139,8 +139,8 @@ check_app_h() {
     fail_check "Required deployment 'app-h' is missing" "deployment/app-h" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get deployment app-h -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'")"
-  if [ "${actual}" != "100m" ]; then
+  actual="$(fields "get deployment app-h -n ${NS} -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}|{.spec.template.spec.containers[0].resources.requests.memory}|{.spec.template.spec.containers[0].resources.limits.cpu}|{.spec.template.spec.containers[0].resources.limits.memory}}'")"
+  if [ "${actual}" != "100m|64Mi|500m|128Mi" ]; then
     fail_check "deployment 'app-h' has incorrect configuration" "deployment/app-h" "Inspect CPU and memory requests and limits together, then observe scheduling and rollout status."
     return 1
   fi

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Structured API output only; normalize SSM's textual empty sentinel.
+# Read structured Kubernetes API fields, normalize SSM empty output, and never parse display tables.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
 fields() {
   local out
-  out="$(kc "$1" 2>/dev/null || true)"
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
   case "${out}" in None|"<no value>") out="";; esac
   printf '%s' "${out}"
 }
