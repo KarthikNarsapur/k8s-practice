@@ -46,8 +46,8 @@ check_deny() {
   selector="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.podSelector.matchLabels.tier}")"
   ptype="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.policyTypes[0]}")"
   ingress="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.ingress[0].from[0].podSelector.matchLabels.tier}")"
-  rules="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.ingress[0]}")"
-  if [ "${selector}" != "${tier}" ] || [ "${ptype}" != "Ingress" ] || [ -n "${ingress}" ] || [ -n "${rules}" ]; then
+  rules="$(value "get networkpolicy ${name} -n ${NS} -o jsonpath={.spec.ingress}")"
+  if [ "${selector}" != "${tier}" ] || [ "${ptype}" != "Ingress" ] || [ -n "${ingress}" ] || { [ -n "${rules}" ] && [ "${rules}" != "[]" ]; }; then
     fail_check "NetworkPolicy '${name}' does not express the expected ingress isolation" "networkpolicy/${name}" "Check the selected destination tier, policyTypes, and whether any ingress allow rules remain."
     return 1
   fi
