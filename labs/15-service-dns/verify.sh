@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Use structured API fields, not human-readable kubectl table columns.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
-value() { kc "$1" 2>/dev/null | tr -d '[:space:]'; }
+value() {
+  local out
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
+  case "${out}" in None|"<no value>") out="";; esac
+  printf '%s' "${out}"
+}
 
 check_one() {
   local name="$1" expected="$2" selector port target endpoint

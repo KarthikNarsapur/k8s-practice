@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Verifiers use structured jsonpath fields, never human-readable kubectl table parsing.
 fail_check() { err "FAILED: $1"; err "Object: $2"; err "Hint: $3"; return 1; }
-value() { kc "$1" 2>/dev/null | tr -d '[:space:]'; }
+value() {
+  local out
+  out="$(kc "$1" 2>/dev/null | tr -d '[:space:]' || true)"
+  case "${out}" in None|"<no value>") out="";; esac
+  printf '%s' "${out}"
+}
 
 check_nodeport() {
   local name="$1" label="$2" expected="$3" selector type port target node endpoint

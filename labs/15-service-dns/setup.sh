@@ -234,7 +234,7 @@ metadata:
   name: hc-dns-g
 spec:
   selector:
-    app: app-g
+    app: missing-g
   ports:
   - port: 80
     targetPort: 80
@@ -248,7 +248,7 @@ spec:
     app: app-h
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
 ---
 apiVersion: v1
 kind: Pod

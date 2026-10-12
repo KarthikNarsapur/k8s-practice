@@ -190,7 +190,7 @@ metadata:
   name: hc-svc-g
 spec:
   selector:
-    app: app-g
+    app: missing-g
   ports:
   - port: 80
     targetPort: 80
@@ -204,7 +204,7 @@ spec:
     app: app-h
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
 ---
 YAML"
 ok "Setup complete. Finish all four basic and four hard challenges in README.md."
