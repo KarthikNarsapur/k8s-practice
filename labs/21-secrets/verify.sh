@@ -39,7 +39,7 @@ check_secret_c() {
     fail_check "Required secret 'secret-c' is missing" "secret/secret-c" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret secret-c -n ${NS} -o jsonpath='{.type}|{.data['api-token']}'")"
+  actual="$(fields "get secret secret-c -n ${NS} -o jsonpath='{.type}|{.data.api-token}'")"
   if [ "${actual}" != "Opaque|ZmFrZS10b2tlbi03ODk=" ]; then
     fail_check "secret 'secret-c' has incorrect configuration" "secret/secret-c" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
@@ -91,7 +91,7 @@ check_hc_secret_g() {
     fail_check "Required secret 'hc-secret-g' is missing" "secret/hc-secret-g" "Create or repair the named object in the lab namespace."
     return 1
   fi
-  actual="$(fields "get secret hc-secret-g -n ${NS} -o jsonpath='{.type}|{.data['api-token']}'")"
+  actual="$(fields "get secret hc-secret-g -n ${NS} -o jsonpath='{.type}|{.data.api-token}'")"
   if [ "${actual}" != "Opaque|ZmFrZS10b2tlbi03ODk=" ]; then
     fail_check "secret 'hc-secret-g' has incorrect configuration" "secret/hc-secret-g" "Check the Secret type and required key/value without printing credential values into logs."
     return 1
