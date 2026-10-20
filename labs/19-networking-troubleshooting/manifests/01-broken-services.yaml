@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-a
+  namespace: lab-19
+spec:
+  selector:
+    app: missing-a
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-b
+  namespace: lab-19
+spec:
+  selector:
+    app: app-b
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-c
+  namespace: lab-19
+spec:
+  selector:
+    app: missing-c
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-d
+  namespace: lab-19
+spec:
+  selector:
+    app: app-d
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-incident-e
+  namespace: lab-19
+spec:
+  selector:
+    app: missing-e
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-incident-f
+  namespace: lab-19
+spec:
+  selector:
+    app: app-f
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-incident-g
+  namespace: lab-19
+spec:
+  selector:
+    app: missing-g
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-incident-h
+  namespace: lab-19
+spec:
+  selector:
+    app: app-h
+  ports:
+  - port: 80
+    targetPort: 8080
+---

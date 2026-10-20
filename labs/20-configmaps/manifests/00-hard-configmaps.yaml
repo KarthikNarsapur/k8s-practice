@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hc-config-e
+  namespace: lab-20
+data:
+  APP_MODE: "staging"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hc-config-f
+  namespace: lab-20
+data:
+  LOG_LEVEL: "debug"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hc-config-g
+  namespace: lab-20
+data:
+  FEATURE_FLAG: "disabled"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hc-config-h
+  namespace: lab-20
+data:
+  REGION: "us-east-1"
+---

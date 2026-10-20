@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-a
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-a-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-b
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-b-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-c
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-c-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-d
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-d-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-e
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-e-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-f
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-f-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-g
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-g-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-h
+  namespace: lab-22
+data:
+  APP_MODE: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-h-logs
+  namespace: lab-22
+data:
+  LOG_LEVEL: "info"
+---

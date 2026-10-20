@@ -53,10 +53,19 @@ phases) are in [`DESIGN.md`](DESIGN.md).
 │   └── aws-stop.sh aws-start.sh
 └── labs/                     # the labs
     ├── 01-cluster-architecture/ ... 13-cronjobs/
+    ├── 14-services-endpoints/ ... 25-resource-requests-limits/
     └── t01-crashloopbackoff/
 ```
 
 ---
+
+## Learning progression
+
+| Level | Labs | Focus |
+|---|---|---|
+| 1–3 | 01–13, t01 | Workloads, lifecycle, and CrashLoopBackOff troubleshooting |
+| 4 | 14–19 | Services, DNS, NodePort, NetworkPolicy, Ingress, networking capstone |
+| 5 | 20–25 | ConfigMaps, Secrets, environment injection, config volumes, probes, requests/limits |
 
 ## Prerequisites
 
@@ -257,11 +266,14 @@ ships Levels 1–2 plus a Level-10 troubleshooting starter:
 |-------|-------|--------------------|
 | 1 | Fundamentals | 01 architecture, 02 kubectl, 03 pods, 04 lifecycle, 05 labels/selectors, 06 namespaces |
 | 2 | Workloads | 07 replicasets, 08 deployments, 09 rolling updates, 10 rollbacks, 11 daemonsets, 12 jobs, 13 cronjobs |
+| 3 | Networking foundations → advanced | 14 Services/endpoints, 15 DNS, 16 NodePort, 17 NetworkPolicy, 18 Ingress, 19 troubleshooting capstone |
 | 10 | Troubleshooting | t01 CrashLoopBackOff |
 
 Track your status in [`PROGRESS.md`](PROGRESS.md).
 
-Later phases (Networking, Config, Storage, Scheduling, Security, Scaling,
+Networking Labs 14–19 progress from Services and DNS through NodePort, NetworkPolicy, Ingress, and an integrated connectivity troubleshooting capstone.
+
+Later phases (Config, Storage, Scheduling, Security, Scaling,
 Observability, full Troubleshooting suite, Cluster admin/upgrade, and a
 realistic 3-tier app) are designed for but not yet implemented — the Terraform
 is structured so add-ons (EKS, Helm, ArgoCD, Prometheus, Cilium, EBS CSI, IRSA)

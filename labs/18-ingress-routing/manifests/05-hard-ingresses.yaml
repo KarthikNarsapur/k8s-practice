@@ -1,0 +1,76 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hc-ing-e
+  namespace: lab-18
+spec:
+  ingressClassName: lab18
+  rules:
+  - host: wrong-e.lab.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ing-e
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hc-ing-f
+  namespace: lab-18
+spec:
+  ingressClassName: lab18
+  rules:
+  - host: app-f.lab.test
+    http:
+      paths:
+      - path: /wrong
+        pathType: Prefix
+        backend:
+          service:
+            name: ing-f
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hc-ing-g
+  namespace: lab-18
+spec:
+  ingressClassName: lab18
+  rules:
+  - host: app-g.lab.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: missing-g
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hc-ing-h
+  namespace: lab-18
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app-h.lab.test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ing-h
+            port:
+              number: 80
+---

@@ -74,30 +74,38 @@ fi
 ok "PASS: [HC2] policy-allow and policy-forbid both exist"
 
 # HC3 — broken-cron: exists, NOT suspended, and at least one child Job succeeded.
+# HC3 — broken-cron: exists, NOT suspended, and at least one child Job succeeded.
 if ! kc "get cronjob broken-cron -n ${NS}" >/dev/null 2>&1; then
   err "FAILED: [HC3] CronJob 'broken-cron' not found"
   err "Object: cronjob/broken-cron in namespace ${NS}"
   err "Hint: This CronJob was deployed suspended with a broken command. Unsuspend it and fix the command so its Jobs succeed."
   return 1
 fi
+
 bc_suspend="$(kc "get cronjob broken-cron -n ${NS} -o jsonpath={.spec.suspend}" 2>/dev/null | tr -d '[:space:]')"
+
 if [ "${bc_suspend}" = "true" ]; then
   err "FAILED: [HC3] CronJob 'broken-cron' is still suspended"
   err "Object: cronjob/broken-cron (spec.suspend=${bc_suspend})"
   err "Hint: A suspended CronJob will not create Jobs. Toggle the boolean field that controls scheduling."
   return 1
 fi
-# Count succeeded child Jobs whose name starts with 'broken-cron'.
-bc_succeeded="$(kc "get jobs -n ${NS} -o jsonpath={range .items[*]}{.metadata.name}{\" \"}{.status.succeeded}{\"\\n\"}{end}" 2>/dev/null \
-  | awk '/^broken-cron/ && $2+0>=1 { c++ } END { print c+0 }')"
+
+# Query only successful Jobs belonging to the broken-cron name prefix.
+bc_succeeded="$(
+  kc "get jobs -n ${NS} --no-headers" 2>/dev/null |
+    awk '$1 ~ /^broken-cron-/ && $3 == "1/1" { count++ } END { print count+0 }'
+)"
+
 bc_succeeded="${bc_succeeded:-0}"
+
 if [ "${bc_succeeded}" -lt 1 ]; then
   err "FAILED: [HC3] CronJob 'broken-cron' has no successful child Jobs"
   err "Object: cronjob/broken-cron (succeeded child jobs=${bc_succeeded})"
   err "Hint: The original command exits non-zero. Replace it with one that succeeds, then wait for a new Job to fire."
   return 1
 fi
-ok "PASS: [HC3] broken-cron is unsuspended and has at least one successful child Job"
 
+ok "PASS: [HC3] broken-cron is unsuspended and has at least one successful child Job"
 ok "PASS: Lab 13 base + hard challenges complete"
 return 0
