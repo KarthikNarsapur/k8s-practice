@@ -20,6 +20,9 @@ Update the **Status** column as you go. Statuses: `Not Started`, `In Progress`,
 | 11 | DaemonSets | Completed | 3 | 2026-10-08 |
 | 12 | Jobs | Completed | 1 | 2026-10-08 |
 | 13 | CronJobs | Completed | 6 | 2026-10-09 |
+| t01 | Troubleshooting: CrashLoopBackOff | Completed | 3 | 2026-10-09 |
+
+## Phase 2 — Networking
 
 | Lab | Topic | Status | Attempts | Completed |
 |-----|-------|--------|----------|-----------|
